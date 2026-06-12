@@ -711,7 +711,6 @@ function render() {
           <option value="zh" ${state.lang === 'zh' ? 'selected' : ''}>中文</option>
           <option value="en" ${state.lang === 'en' ? 'selected' : ''}>English</option>
         </select>
-        <button id="ai-settings" class="btn">${ui.ai.settings}</button>
         <button id="open-log" class="btn">${ui.openLog}</button>
         <button id="scan-quick" class="btn" ${state.scanning ? 'disabled' : ''}>${ui.quickScan}</button>
         <button id="scan-deep" class="btn btn-primary" ${state.scanning ? 'disabled' : ''}>${ui.deepScan}</button>
@@ -791,7 +790,6 @@ function render() {
 
 function bindEvents() {
   document.getElementById('lang-select')?.addEventListener('change', e => setLang(e.target.value));
-  document.getElementById('ai-settings')?.addEventListener('click', openAISettings);
   document.getElementById('ai-settings-inline')?.addEventListener('click', openAISettings);
   document.getElementById('ai-settings-cancel')?.addEventListener('click', () => { state.aiSettingsOpen = false; render(); });
   document.getElementById('ai-settings-save')?.addEventListener('click', saveAISettings);
