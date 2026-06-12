@@ -148,10 +148,10 @@ export const COPY = {
         desc: p => `检测到 ${p.startupCount} 个值得检查的启动项和 ${p.taskCount} 个第三方计划任务,共 ${p.count} 项。过多的更新器和助手会拖慢登录和日常响应。`,
       },
       'rule.vendor-services': {
-        title: 'Dell/Intel 后台服务',
+        title: '厂商/平台后台服务',
         desc: p => p.busyCount > 0
-          ? `${p.count} 个 Dell/Intel 服务在运行,其中 ${p.busyCount} 个在扫描期间有实际资源消耗(见证据)。`
-          : `${p.count} 个 Dell/Intel 服务在运行。数量本身属于正常背景信息,扫描期间未观测到明显资源消耗;如需精简可在优化页逐项处理。`,
+          ? `${p.count} 个 ${(p.vendorLabel || '厂商/平台')} 相关服务在运行,其中 ${p.busyCount} 个在扫描期间有实际资源消耗(见证据)。`
+          : `${p.count} 个 ${(p.vendorLabel || '厂商/平台')} 相关服务在运行。数量本身属于正常背景信息,扫描期间未观测到明显资源消耗;如需精简可在优化页逐项处理。`,
       },
       'rule.duplicate-utilities': {
         title: '同类工具软件重复安装',
@@ -202,7 +202,7 @@ export const COPY = {
     causes: {
       'cause.power-policy': { title: '电源策略限制', desc: '电源计划或处理器电源设置在压制 CPU 频率,可通过调整电源计划解决。' },
       'cause.firmware-adapter': { title: '固件/电源适配器限制', desc: '系统固件在限制处理器速度——常见于适配器不被识别、功率不足或老化,也可能是 BIOS 电源策略。' },
-      'cause.vendor-manager': { title: '厂商电源管理软件', desc: 'Dell/Intel 的电源管理组件在接管调度策略,可能覆盖 Windows 默认行为。' },
+      'cause.vendor-manager': { title: '厂商电源管理软件', desc: '厂商/平台电源管理组件在接管调度策略,可能覆盖 Windows 默认行为。' },
       'cause.thermal': { title: '过热降频', desc: '温度或负载模式显示存在热限制的可能。' },
       'cause.battery': { title: '电池供电/老化', desc: '电池供电模式或电池老化在限制性能输出。' },
     },
@@ -219,7 +219,7 @@ export const COPY = {
       'ev.policy-consistency': p => `观测到的平均频率比 ${p.observedPercent}% 与策略上限 ${p.capPercent}% 吻合——该设置可直接解释降频`,
       'ev.startup-count': p => `${p.count} 个值得检查的启动项`,
       'ev.task-count': p => `${p.count} 个第三方计划任务`,
-      'ev.vendor-service-count': p => `${p.count} 个 Dell/Intel 服务正在运行`,
+      'ev.vendor-service-count': p => `${p.count} 个 ${(p.vendorLabel || '厂商/平台')} 相关服务正在运行`,
       'ev.vendor-busy': p => `${p.displayName}(进程 ${p.process})CPU ${p.cpuPercent}%、内存 ${p.memMB} MB`,
       'ev.ac-drain': p => `接通电源时电池仍在放电,最高 ${(p.maxDischargeMW / 1000).toFixed(1)} W(${p.readings} 次读数)`,
       'ev.lag-marker': p => {
@@ -385,10 +385,10 @@ export const COPY = {
         desc: p => `Found ${p.startupCount} review-worthy startup entries and ${p.taskCount} third-party scheduled tasks (${p.count} total). Updaters and assistants slow login and day-to-day responsiveness.`,
       },
       'rule.vendor-services': {
-        title: 'Dell/Intel Background Services',
+        title: 'OEM/Platform Background Services',
         desc: p => p.busyCount > 0
-          ? `${p.count} Dell/Intel services are running; ${p.busyCount} consumed measurable resources during the scan (see evidence).`
-          : `${p.count} Dell/Intel services are running. The count itself is normal background context — no significant resource usage was observed during the scan. Trim individually from the Actions tab if desired.`,
+          ? `${p.count} ${(p.vendorLabel || 'OEM/platform')} services are running; ${p.busyCount} consumed measurable resources during the scan (see evidence).`
+          : `${p.count} ${(p.vendorLabel || 'OEM/platform')} services are running. The count itself is normal background context — no significant resource usage was observed during the scan. Trim individually from the Actions tab if desired.`,
       },
       'rule.duplicate-utilities': {
         title: 'Duplicate Utility Software',
@@ -439,7 +439,7 @@ export const COPY = {
     causes: {
       'cause.power-policy': { title: 'Power Policy Limit', desc: 'The power plan or processor power settings are capping CPU frequency; adjusting the plan resolves this.' },
       'cause.firmware-adapter': { title: 'Firmware / Power Adapter Limit', desc: 'System firmware is limiting processor speed — typical of an unrecognized, undersized, or aging adapter, or BIOS power policy.' },
-      'cause.vendor-manager': { title: 'Vendor Power Manager', desc: 'Dell/Intel power management components are overriding Windows default scheduling behavior.' },
+      'cause.vendor-manager': { title: 'Vendor Power Manager', desc: 'OEM/platform power management components are overriding Windows default scheduling behavior.' },
       'cause.thermal': { title: 'Thermal Throttling', desc: 'Temperature or load patterns suggest a thermal limit.' },
       'cause.battery': { title: 'Battery Power / Wear', desc: 'Running on battery or battery degradation is limiting performance output.' },
     },
@@ -456,7 +456,7 @@ export const COPY = {
       'ev.policy-consistency': p => `Observed average frequency ratio ${p.observedPercent}% matches the policy cap of ${p.capPercent}% — the setting directly explains the downclocking`,
       'ev.startup-count': p => `${p.count} review-worthy startup entries`,
       'ev.task-count': p => `${p.count} third-party scheduled tasks`,
-      'ev.vendor-service-count': p => `${p.count} Dell/Intel services running`,
+      'ev.vendor-service-count': p => `${p.count} ${(p.vendorLabel || 'OEM/platform')} services running`,
       'ev.vendor-busy': p => `${p.displayName} (process ${p.process}) CPU ${p.cpuPercent}%, memory ${p.memMB} MB`,
       'ev.ac-drain': p => `Battery discharged while on AC, up to ${(p.maxDischargeMW / 1000).toFixed(1)} W (${p.readings} readings)`,
       'ev.lag-marker': p => {

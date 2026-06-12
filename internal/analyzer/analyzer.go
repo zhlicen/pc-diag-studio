@@ -13,17 +13,17 @@ import (
 )
 
 const (
-	RuleCPUFreqConstrained = "rule.cpu-freq-constrained"
-	RulePowerSaverScheme   = "rule.power-saver-scheme"
-	RuleMemoryPressure     = "rule.memory-pressure"
-	RuleDiskActiveHigh     = "rule.disk-active-high"
-	RuleSystemDriveLow     = "rule.system-drive-low-space"
-	RuleStartupLoad        = "rule.startup-load"
-	RuleVendorServices     = "rule.vendor-services"
-	RuleDuplicateUtilities = "rule.duplicate-utilities"
+	RuleCPUFreqConstrained  = "rule.cpu-freq-constrained"
+	RulePowerSaverScheme    = "rule.power-saver-scheme"
+	RuleMemoryPressure      = "rule.memory-pressure"
+	RuleDiskActiveHigh      = "rule.disk-active-high"
+	RuleSystemDriveLow      = "rule.system-drive-low-space"
+	RuleStartupLoad         = "rule.startup-load"
+	RuleVendorServices      = "rule.vendor-services"
+	RuleDuplicateUtilities  = "rule.duplicate-utilities"
 	RuleAdapterUnderpowered = "rule.adapter-underpowered"
-	RuleLagMoments         = "rule.lag-moments"
-	RuleNoMajorIssue       = "rule.no-major-issue"
+	RuleLagMoments          = "rule.lag-moments"
+	RuleNoMajorIssue        = "rule.no-major-issue"
 )
 
 // symptomPreferredRules steers which finding becomes the primary conclusion
@@ -149,17 +149,18 @@ func Analyze(r *model.DiagnosticReport) {
 			runningVendor++
 		}
 	}
+	vendorLabel := vendorServicesLabel(r.VendorServices)
 	busyVendor := vendorBusyProcesses(r)
 	if len(busyVendor) > 0 {
 		evidence := make([]model.Evidence, 0, len(busyVendor)+1)
 		for _, b := range busyVendor {
 			evidence = append(evidence, model.Evidence{EvidenceID: "ev.vendor-busy", Params: b})
 		}
-		evidence = append(evidence, model.Evidence{EvidenceID: "ev.vendor-service-count", Params: map[string]any{"count": runningVendor}})
+		evidence = append(evidence, model.Evidence{EvidenceID: "ev.vendor-service-count", Params: map[string]any{"count": runningVendor, "vendorLabel": vendorLabel}})
 		a.Findings = append(a.Findings, model.Finding{
 			RuleID:   RuleVendorServices,
 			Severity: "warning",
-			Params:   map[string]any{"count": runningVendor, "busyCount": len(busyVendor)},
+			Params:   map[string]any{"count": runningVendor, "busyCount": len(busyVendor), "vendorLabel": vendorLabel},
 			Evidence: evidence,
 		})
 		a.CategoryScores["vendor"] = 10
@@ -168,9 +169,9 @@ func Analyze(r *model.DiagnosticReport) {
 		a.Findings = append(a.Findings, model.Finding{
 			RuleID:   RuleVendorServices,
 			Severity: "info",
-			Params:   map[string]any{"count": runningVendor, "busyCount": 0},
+			Params:   map[string]any{"count": runningVendor, "busyCount": 0, "vendorLabel": vendorLabel},
 			Evidence: []model.Evidence{
-				{EvidenceID: "ev.vendor-service-count", Params: map[string]any{"count": runningVendor}},
+				{EvidenceID: "ev.vendor-service-count", Params: map[string]any{"count": runningVendor, "vendorLabel": vendorLabel}},
 			},
 		})
 	}
@@ -291,8 +292,8 @@ func memFinding(s model.SamplingSummary, severity string) model.Finding {
 		RuleID:   RuleMemoryPressure,
 		Severity: severity,
 		Params: map[string]any{
-			"avgUsedPercent": round1(s.AvgMemUsedPercent),
-			"maxUsedPercent": round1(s.MaxMemUsedPercent),
+			"avgUsedPercent":   round1(s.AvgMemUsedPercent),
+			"maxUsedPercent":   round1(s.MaxMemUsedPercent),
 			"avgCommitPercent": round1(s.AvgCommitPercent),
 		},
 		Evidence: []model.Evidence{
@@ -373,6 +374,32 @@ func abs(v int) int {
 		return -v
 	}
 	return v
+}
+
+func vendorServicesLabel(services []model.ServiceInfo) string {
+	hasDell := false
+	hasIntel := false
+	for _, s := range services {
+		if s.State != "Running" {
+			continue
+		}
+		switch s.VendorHint {
+		case model.HintDellOptimizer, model.HintDellPowerManager, model.HintDellSupportAsst, model.HintDellOther:
+			hasDell = true
+		case model.HintIntelDTT, model.HintIntelOther:
+			hasIntel = true
+		}
+	}
+	switch {
+	case hasDell && hasIntel:
+		return "Dell/Intel"
+	case hasDell:
+		return "Dell"
+	case hasIntel:
+		return "Intel"
+	default:
+		return "OEM/platform"
+	}
 }
 
 // vendorBusyProcesses cross-references vendor service executables with the
