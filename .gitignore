@@ -1,0 +1,12 @@
+build/bin
+node_modules
+frontend/dist
+
+# runtime artifacts (portable layout keeps these next to the exe)
+data/
+log/
+
+# local smoke-test artifacts
+colltest.exe
+colltest-*.json
+.claude/
