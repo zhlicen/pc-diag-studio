@@ -137,7 +137,13 @@ The attribution pass produces a ranked candidate list. The primary conclusion na
 
 ### Honest limitation
 
-Direct CPU voltage, per-core MSRs, and PL1/PL2 power-limit values require a signed kernel driver (what HWiNFO uses). That conflicts with the green-exe constraint and stays out of scope; attribution relies on OS-visible signals above. If those signals are inconclusive, the tool says so rather than guessing.
+Direct CPU voltage, per-core MSRs, package power, PL1/PL2, PROCHOT, and
+reliable fan RPM generally require a signed kernel driver or a hardware sensor
+tool. The default green exe must not install or depend on that. M6 plans an
+optional read-only sensor-provider path for user-supplied HWiNFO Shared Memory
+and/or a LibreHardwareMonitor helper. If those providers are absent,
+attribution relies on OS-visible signals above and says so rather than
+guessing.
 
 ### Power Saver Mode
 
@@ -245,6 +251,8 @@ Duplicate utility software often means duplicate background updaters and startup
 - Windows Update state.
 - DPC/interrupt counters.
 - Battery/power source info.
+- Advanced sensor provider readings (optional M6): CPU package temperature,
+  package power, voltage, fan RPM, PROCHOT/throttle flags, and adapter/power
+  hints from HWiNFO Shared Memory or a LibreHardwareMonitor helper.
 - Signed binary metadata.
 - Startup impact estimation.
-

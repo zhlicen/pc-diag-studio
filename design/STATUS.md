@@ -169,9 +169,12 @@ Remaining M5 acceptance:
 - **Post-v0.5.0 polish**: second-machine smoke test, broader localization copy
   review, and optional release packaging/signing decisions. See
   [product-plan.md](product-plan.md) and [optimization-and-safety.md](optimization-and-safety.md).
-- Deferred ideas (do not start without the owner's ask): HWiNFO shared-memory
-  sensor ingestion, Lenovo/HP vendor packs, fleet report aggregation/compare,
-  per-disk latency counters, DPC/interrupt signals.
+- **M6 planned**: optional advanced sensor providers. Keep the app green by
+  default, then support user-supplied HWiNFO Shared Memory and/or a
+  LibreHardwareMonitor helper for CPU package temperature, package power,
+  voltage, fan RPM, and PROCHOT/throttle signals where available.
+- Later deferred ideas: Lenovo/HP vendor packs, fleet report
+  aggregation/compare, per-disk latency counters, DPC/interrupt signals.
 
 ## History of design corrections (do not regress)
 

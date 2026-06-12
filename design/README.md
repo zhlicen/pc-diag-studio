@@ -6,7 +6,7 @@ This directory records the product thinking, design decisions, architecture, and
 > 1. [STATUS.md](STATUS.md) — current progress, pending work, immediate actions, acceptance tests.
 > 2. [engineering-guardrails.md](engineering-guardrails.md) — the invariants you must not break.
 >
-> M1–M3 are implemented and user-verified; M4 is code-complete, build-verified, committed, and pushed, with GUI/action acceptance still pending (see STATUS). The docs below describe the intended design and match the implementation as of 2026-06-12.
+> M1–M5 are implemented through the local `v0.5.0` release candidate; M6 is planned as an optional advanced-sensors track. See STATUS for the current pushed/local split and remaining manual acceptance.
 
 ## Documents
 
@@ -14,7 +14,7 @@ This directory records the product thinking, design decisions, architecture, and
 - [Engineering Guardrails](engineering-guardrails.md): localization contract, safety contract, rule integrity principles, localized-Windows compatibility, architecture boundaries.
 - [Product Background](product-background.md): why this tool exists, target users, and first-version scope.
 - [Product Plan](product-plan.md): product shape, UX flow, feature boundaries, and roadmap.
-- [Development Plan](development-plan.md): milestone scopes M1–M5 with acceptance criteria.
+- [Development Plan](development-plan.md): milestone scopes M1–M6 with acceptance criteria.
 - [UI Design](ui-design.md): visual direction, interaction model, bilingual UI, and prototype options.
 - [Architecture](architecture.md): code modules, runtime shape, data flow, and project structure.
 - [Diagnostic Logic](diagnostic-logic.md): collection strategy, scoring model, sampling logic, and rule design.

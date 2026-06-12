@@ -84,6 +84,9 @@ Collects system data through PowerShell and CIM. Responsibilities:
 - Disk info.
 - Power state: active scheme, AC/DC processor policy (max state, boost), power source, battery wear.
 - Throttle evidence: Kernel-Processor-Power firmware-limit events (ID 37), thermal zone best effort.
+- Optional advanced sensors (planned M6): user-supplied HWiNFO Shared Memory
+  and/or LibreHardwareMonitor helper readings normalized into temperature,
+  fan RPM, package power, voltage, and throttle-flag metrics.
 - Time-series system samples.
 - Top processes.
 - Matching services.
@@ -154,4 +157,3 @@ If that path cannot be created, it falls back to:
 ```
 
 This avoids the WebView2 error where the runtime tries to write under an unavailable administrator profile.
-

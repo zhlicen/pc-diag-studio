@@ -1,9 +1,12 @@
 # Development Plan
 
-Five milestones. Each ends with a runnable build and a concrete acceptance test. M1 deliberately goes straight at the core value: reproducing the motivating case's correct conclusion on the IT user's own Dell machine.
+The original release plan has five milestones. Each ends with a runnable build
+and a concrete acceptance test. M1 deliberately goes straight at the core value:
+reproducing the motivating case's correct conclusion on the IT user's own Dell
+machine. After v0.5.0, M6 is planned as an optional advanced-sensors track.
 
 > **Implementation status lives in [STATUS.md](STATUS.md).** As of 2026-06-12:
-> M1-M3 verified+pushed · M4 code-complete/build-verified+pushed with rollback manual checks pending · M5 sealed as local `v0.5.0` release candidate; second-PC smoke and remote push pending.
+> M1-M3 verified+pushed · M4 code-complete/build-verified+pushed with rollback manual checks pending · M5 sealed as local `v0.5.0` release candidate; M6 advanced sensor plugin planned.
 
 ## M1 — Skeleton + Frequency Root-Cause Chain ✅
 
@@ -90,3 +93,40 @@ Scope:
 - Release build: single portable exe, size check (target well under 100 MB), smoke-test checklist on a second Dell machine.
 
 Acceptance: AI explanation works against an OpenAI-compatible endpoint; key absent from all files on disk in plaintext; copied folder runs cleanly on another machine.
+
+## M6 — Advanced Sensor Providers
+
+Scope:
+
+- Keep the default app green and self-contained: no bundled kernel driver, no
+  mandatory background service, and no hard dependency on external tools.
+- Add an optional sensor-provider layer under `internal/sensors/` with a
+  normalized JSON model for temperature, fan RPM, CPU/package power, voltage,
+  PROCHOT/throttle flags, and adapter/power-delivery hints.
+- HWiNFO provider: detect a user-supplied portable HWiNFO path and read sensor
+  data through Shared Memory when the user enables Sensors + Shared Memory.
+  Treat licensing/edition limits as an implementation-time check; do not ship
+  or silently install HWiNFO.
+- LibreHardwareMonitor provider: prototype a small helper process that uses
+  `LibreHardwareMonitorLib` and emits normalized JSON. The helper must be
+  optional, read-only, and explicit about admin/driver requirements.
+- Extend the diagnostic report with an optional `advancedSensors` block and
+  include only summarized, redacted values in AI summaries.
+- UI: add an "Advanced Sensors" settings/status area showing provider state,
+  last reading time, unavailable reasons, and the exact metrics discovered.
+- Analyzer: upgrade thermal/power attribution when high-quality sensor data is
+  present; never downgrade the existing OS-visible evidence path when sensors
+  are absent.
+
+Acceptance:
+
+- With no provider installed, scans complete normally and say advanced sensors
+  are unavailable without warnings or score penalties.
+- With HWiNFO running, a scan captures at least CPU package temperature,
+  package power, and any available fan RPM/voltage readings on a supported
+  machine.
+- With the LibreHardwareMonitor helper enabled, the app captures the same
+  normalized sensor categories where the machine exposes them.
+- Sensor readings are read-only, logged as evidence, and never used to execute
+  hardware control actions such as fan curves, undervolting, or power-limit
+  changes.

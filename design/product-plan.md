@@ -101,6 +101,9 @@ Short-term:
 
 Medium-term:
 
+- Add M6 advanced sensor plugin support: optional HWiNFO Shared Memory and/or
+  LibreHardwareMonitor helper for CPU package temperature, package power,
+  voltage, fan RPM, and throttle flags.
 - Add Lenovo/HP vendor rule packages.
 - Add more precise disk latency counters.
 - Add DPC/interrupt and thermal/power throttling signals where accessible.
@@ -111,4 +114,3 @@ Long-term:
 - Rule pack updates.
 - More detailed AI report generation.
 - Portable support bundle export.
-
