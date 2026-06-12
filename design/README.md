@@ -3,10 +3,10 @@
 This directory records the product thinking, design decisions, architecture, and prototype references for Diagnostic Studio.
 
 > **READ FIRST for any new contributor (human or AI):**
-> 1. [STATUS.md](STATUS.md) — current progress, uncommitted work, immediate actions, acceptance tests.
+> 1. [STATUS.md](STATUS.md) — current progress, pending work, immediate actions, acceptance tests.
 > 2. [engineering-guardrails.md](engineering-guardrails.md) — the invariants you must not break.
 >
-> M1–M3 are implemented and user-verified; M4 is code-complete but never compiled (see STATUS). The docs below describe the intended design and match the implementation as of 2026-06-12.
+> M1–M3 are implemented and user-verified; M4 is code-complete, build-verified, committed, and pushed, with GUI/action acceptance still pending (see STATUS). The docs below describe the intended design and match the implementation as of 2026-06-12.
 
 ## Documents
 
@@ -29,4 +29,3 @@ The Product Design exploration generated three visual directions:
 - [Ops Workbench](prototypes/03-ops-workbench.png)
 
 The selected direction is **Diagnostic Studio**: a premium but practical Windows diagnostic workbench with a glass-like command bar, left-side diagnostic narrative, and right-side analysis workspace.
-

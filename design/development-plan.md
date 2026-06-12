@@ -3,7 +3,7 @@
 Five milestones. Each ends with a runnable build and a concrete acceptance test. M1 deliberately goes straight at the core value: reproducing the motivating case's correct conclusion on the IT user's own Dell machine.
 
 > **Implementation status lives in [STATUS.md](STATUS.md).** As of 2026-06-12:
-> M1 ✅ verified · M2 ✅ verified+pushed · M3 ✅ verified (commit may be pending) · M4 code-complete, NEVER COMPILED · M5 not started.
+> M1 ✅ verified · M2 ✅ verified+pushed · M3 ✅ verified+pushed · M4 code-complete, build-verified+pushed, user acceptance pending · M5 not started.
 
 ## M1 — Skeleton + Frequency Root-Cause Chain ✅
 
@@ -45,7 +45,7 @@ Scope:
 
 Acceptance: disable a harmless test service, restart app, roll it back from the log record.
 
-## M4 — Symptom-Driven Diagnosis + Evidence Integrity 🔶 code-complete, unverified
+## M4 — Symptom-Driven Diagnosis + Evidence Integrity 🔶 code-complete, build-verified, user acceptance pending
 
 Scope from the 2026-06-12 product feedback round (the user's critique: rules
 felt anecdote-driven, no subjective input, shallow power signals, disable

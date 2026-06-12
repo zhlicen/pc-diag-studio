@@ -6,13 +6,15 @@
 
 ## ⚠️ Immediate actions for the next contributor
 
-1. **`git status` first.** M3 and M4 work may be uncommitted in the working
-   tree (tooling outages blocked git during those sessions). If uncommitted:
-   build → verify → commit BEFORE writing any new code. Last pushed commit
-   was M2 (`84ede37`). Repo: https://github.com/zhlicen/pc-diag-studio (private).
-2. **M4 has never been compiled.** Run `go build ./...` then `wails build`.
-   Fix compile errors minimally — do not refactor while fixing.
-3. Run the acceptance tests below before claiming M4 done.
+1. **`git status` first.** The latest pushed checkpoint should be M4
+   (`2e045f0`, `Implement M4 symptom-driven diagnosis`) with a clean working
+   tree. If local changes exist, inspect them before writing new code.
+2. **Keep the build green.** M4 has passed `go build ./...`, `wails build`,
+   and a 10-second `colltest` smoke run. Re-run those checks after backend,
+   frontend binding, collector, analyzer, or action changes.
+3. **Finish M4 user acceptance before claiming M4 done.** The remaining tests
+   require the GUI and, for rollback checks, deliberate harmless system
+   mutations by the owner.
 
 ## Milestone ledger
 
@@ -20,11 +22,11 @@
 |---|---|---|---|---|---|
 | M1 skeleton + frequency root-cause attribution | ✅ | ✅ | ✅ (incl. forced-throttle test) | ✅ | ✅ |
 | M2 full rules + workspace tabs | ✅ | ✅ | ✅ | ✅ | ✅ |
-| M3 actions + fail-closed rollback | ✅ | ✅ | ✅ (user ran app; encoding/style fixes verified) | ❓ check git | ❓ |
-| M4 symptom-driven diagnosis (see below) | ✅ | ❌ never compiled | ❌ | ❌ | ❌ |
+| M3 actions + fail-closed rollback | ✅ | ✅ | ✅ (user ran app; encoding/style fixes verified) | ✅ | ✅ |
+| M4 symptom-driven diagnosis (see below) | ✅ | ✅ (`go build` + `wails build`) | ⏳ GUI/actions pending | ✅ `2e045f0` | ✅ |
 | M5 AI + release polish | not started | — | — | — | — |
 
-## What M4 contains (all code written, unverified)
+## What M4 contains (code written, build-verified, user acceptance pending)
 
 1. **Symptom intake**: `RunScan(mode, symptom)` — user picks complaint type
    before scan (`symptom.*` constants in `internal/model`). Steers primary
@@ -49,6 +51,14 @@
    highlight the row.
 
 ## Acceptance tests (M4)
+
+Completed non-destructive checks on 2026-06-12:
+
+- `go build ./...` ✅
+- `wails build` ✅ (`build\bin\diagnostic-studio.exe`)
+- `go run ./cmd/colltest -duration 10 -interval 1` ✅ (JSON report on stdout)
+
+Remaining GUI/system acceptance:
 
 - Symptom flow: pick "用电池时才卡" → deep scan → primary conclusion should
   reference the symptom; side panel shows symptom chip.
