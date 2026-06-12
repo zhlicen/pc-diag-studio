@@ -251,6 +251,12 @@ html, body {
 }
 /* timestamps and IDs read poorly when wrapped */
 .data-table td:first-child { white-space: nowrap; }
+.data-table .col-state {
+  width: 1%;
+  min-width: 72px;
+  white-space: nowrap;
+  word-break: normal;
+}
 .data-table tr:hover td { background: var(--surface-tint); }
 .mono { font-family: Consolas, monospace; font-size: 11.5px; color: var(--text-dim); }
 

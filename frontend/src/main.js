@@ -141,14 +141,18 @@ function sparkline(values, { max, lines = [], markers = [], lastOffset = 0 } = {
 function table(headers, rows, emptyText, refs) {
   if (!rows || !rows.length) return `<p class="hint">${esc(emptyText)}</p>`;
   const hl = state.highlight;
+  const colClasses = headers.map(h => {
+    if (h === '状态' || h === 'State') return 'col-state';
+    return '';
+  });
   return `
     <div class="table-wrap">
       <table class="data-table">
-        <thead><tr>${headers.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead>
+        <thead><tr>${headers.map((h, i) => `<th${colClasses[i] ? ` class="${colClasses[i]}"` : ''}>${esc(h)}</th>`).join('')}</tr></thead>
         <tbody>${rows.map((r, i) => {
           const ref = refs ? refs[i] : '';
           const cls = hl && ref && hl.ref === ref ? ' class="row-flag"' : '';
-          return `<tr${cls}>${r.map(c => `<td>${c}</td>`).join('')}</tr>`;
+          return `<tr${cls}>${r.map((c, j) => `<td${colClasses[j] ? ` class="${colClasses[j]}"` : ''}>${c}</td>`).join('')}</tr>`;
         }).join('')}</tbody>
       </table>
     </div>`;
