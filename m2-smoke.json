@@ -1,0 +1,1462 @@
+﻿{
+  "schemaVersion": 1,
+  "generatedAt": "2026-06-12 14:51:36",
+  "scanMode": "quick",
+  "durationSec": 4,
+  "isAdmin": false,
+  "computer": {
+    "computerName": "LAPTOP25054",
+    "manufacturer": "Dell Inc.",
+    "model": "Latitude 7450",
+    "osName": "Microsoft Windows 11 专业版",
+    "osVersion": "10.0.26200",
+    "osBuild": "26200"
+  },
+  "cpu": {
+    "name": "Intel(R) Core(TM) Ultra 5 125U",
+    "baseClockMHz": 3600,
+    "cores": 12,
+    "logicalProcessors": 14
+  },
+  "memory": {
+    "totalMB": 15828
+  },
+  "disks": [
+    {
+      "drive": "C:",
+      "label": "OS",
+      "totalGB": 473.85839462280273,
+      "freeGB": 257.87781143188477,
+      "freePercent": 54.42085955597743,
+      "isSystem": true
+    }
+  ],
+  "power": {
+    "activeSchemeGuid": "381b4222-f694-41f0-9685-ff5bb260df2e",
+    "activeSchemeName": "Balanced",
+    "onAC": true,
+    "acMaxProcessorState": 100,
+    "dcMaxProcessorState": 100,
+    "acBoostMode": 2,
+    "dcBoostMode": 2,
+    "batteryPresent": false,
+    "batteryDesignedMWh": 0,
+    "batteryFullMWh": 0,
+    "batteryWearPercent": -1,
+    "thermalZoneMaxC": -1
+  },
+  "throttleEvents": [
+    {
+      "timeCreated": "2026-06-12 11:29:54",
+      "eventId": 37,
+      "message": "The speed of processor 13 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 71 seconds since the last report."
+    },
+    {
+      "timeCreated": "2026-06-12 11:29:54",
+      "eventId": 37,
+      "message": "The speed of processor 9 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 71 seconds since the last report."
+    },
+    {
+      "timeCreated": "2026-06-12 11:29:54",
+      "eventId": 37,
+      "message": "The speed of processor 5 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 71 seconds since the last report."
+    },
+    {
+      "timeCreated": "2026-06-11 10:58:26",
+      "eventId": 37,
+      "message": "The speed of processor 13 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 71 seconds since the last report."
+    },
+    {
+      "timeCreated": "2026-06-11 10:58:25",
+      "eventId": 37,
+      "message": "The speed of processor 9 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 71 seconds since the last report."
+    },
+    {
+      "timeCreated": "2026-06-11 10:58:25",
+      "eventId": 37,
+      "message": "The speed of processor 5 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 71 seconds since the last report."
+    },
+    {
+      "timeCreated": "2026-06-10 09:07:26",
+      "eventId": 37,
+      "message": "The speed of processor 13 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 71 seconds since the last report."
+    },
+    {
+      "timeCreated": "2026-06-10 09:07:26",
+      "eventId": 37,
+      "message": "The speed of processor 9 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 71 seconds since the last report."
+    },
+    {
+      "timeCreated": "2026-06-10 09:07:26",
+      "eventId": 37,
+      "message": "The speed of processor 5 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 71 seconds since the last report."
+    },
+    {
+      "timeCreated": "2026-06-09 09:33:27",
+      "eventId": 37,
+      "message": "The speed of processor 13 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 71 seconds since the last report."
+    },
+    {
+      "timeCreated": "2026-06-09 09:33:26",
+      "eventId": 37,
+      "message": "The speed of processor 9 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 71 seconds since the last report."
+    },
+    {
+      "timeCreated": "2026-06-09 09:33:26",
+      "eventId": 37,
+      "message": "The speed of processor 5 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 71 seconds since the last report."
+    },
+    {
+      "timeCreated": "2026-06-04 16:05:04",
+      "eventId": 37,
+      "message": "The speed of processor 13 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 71 seconds since the last report."
+    },
+    {
+      "timeCreated": "2026-06-04 16:05:04",
+      "eventId": 37,
+      "message": "The speed of processor 9 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 71 seconds since the last report."
+    },
+    {
+      "timeCreated": "2026-06-04 16:05:04",
+      "eventId": 37,
+      "message": "The speed of processor 5 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 71 seconds since the last report."
+    },
+    {
+      "timeCreated": "2026-06-02 18:16:19",
+      "eventId": 37,
+      "message": "The speed of processor 13 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 179300 seconds since the last report."
+    },
+    {
+      "timeCreated": "2026-06-02 18:16:19",
+      "eventId": 37,
+      "message": "The speed of processor 9 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 179300 seconds since the last report."
+    },
+    {
+      "timeCreated": "2026-06-02 18:16:19",
+      "eventId": 37,
+      "message": "The speed of processor 5 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 179300 seconds since the last report."
+    },
+    {
+      "timeCreated": "2026-05-31 16:27:58",
+      "eventId": 37,
+      "message": "The speed of processor 13 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 71 seconds since the last report."
+    },
+    {
+      "timeCreated": "2026-05-31 16:27:58",
+      "eventId": 37,
+      "message": "The speed of processor 9 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 71 seconds since the last report."
+    },
+    {
+      "timeCreated": "2026-05-31 16:27:58",
+      "eventId": 37,
+      "message": "The speed of processor 5 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 71 seconds since the last report."
+    },
+    {
+      "timeCreated": "2026-05-30 10:24:05",
+      "eventId": 37,
+      "message": "The speed of processor 13 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 247866 seconds since the last report."
+    },
+    {
+      "timeCreated": "2026-05-30 10:24:05",
+      "eventId": 37,
+      "message": "The speed of processor 5 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 247866 seconds since the last report."
+    },
+    {
+      "timeCreated": "2026-05-30 10:24:05",
+      "eventId": 37,
+      "message": "The speed of processor 9 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 247866 seconds since the last report."
+    }
+  ],
+  "vendorServices": [
+    {
+      "name": "BITS",
+      "displayName": "Background Intelligent Transfer Service",
+      "state": "Running",
+      "startMode": "Auto",
+      "vendorHint": "intel-other",
+      "pathName": "C:\\WINDOWS\\System32\\svchost.exe -k netsvcs -p"
+    },
+    {
+      "name": "Dell SupportAssist Remediation",
+      "displayName": "Dell SupportAssist Remediation",
+      "state": "Running",
+      "startMode": "Auto",
+      "vendorHint": "dell-supportassist",
+      "pathName": "\"C:\\Program Files\\Dell\\SARemediation\\agent\\DellSupportAssistRemedationService.exe\""
+    },
+    {
+      "name": "DellClientManagementService",
+      "displayName": "Dell Client Management Service",
+      "state": "Running",
+      "startMode": "Auto",
+      "vendorHint": "dell-other",
+      "pathName": "\"C:\\Program Files (x86)\\Dell\\UpdateService\\ServiceShell.exe\""
+    },
+    {
+      "name": "DellTechHub",
+      "displayName": "Dell TechHub",
+      "state": "Running",
+      "startMode": "Auto",
+      "vendorHint": "dell-other",
+      "pathName": "\"C:\\Program Files\\Dell\\TechHub\\Dell.TechHub.exe\""
+    },
+    {
+      "name": "dptftcs",
+      "displayName": "Intel(R) Dynamic Tuning Technology Telemetry Service",
+      "state": "Running",
+      "startMode": "Auto",
+      "vendorHint": "intel-dtt",
+      "pathName": "C:\\WINDOWS\\System32\\DriverStore\\FileRepository\\dtt_sw.inf_amd64_4dcbabf4df6e73f7\\ipfsvc.exe"
+    },
+    {
+      "name": "DSAService",
+      "displayName": "Intel(R) Driver \u0026 Support Assistant",
+      "state": "Running",
+      "startMode": "Auto",
+      "vendorHint": "intel-other",
+      "pathName": "\"C:\\Program Files (x86)\\Intel\\Driver and Support Assistant\\x86\\DSAService.exe\""
+    },
+    {
+      "name": "DSAUpdateService",
+      "displayName": "Intel(R) Driver \u0026 Support Assistant Updater",
+      "state": "Running",
+      "startMode": "Auto",
+      "vendorHint": "intel-other",
+      "pathName": "\"C:\\Program Files (x86)\\Intel\\Driver and Support Assistant\\x86\\DSAUpdateService.exe\""
+    },
+    {
+      "name": "IDBWM",
+      "displayName": "Intel Dynamic Bandwidth Management",
+      "state": "Stopped",
+      "startMode": "Manual",
+      "vendorHint": "intel-other",
+      "pathName": "C:\\WINDOWS\\System32\\drivers\\Intel\\ICPS\\IDBWMService.exe"
+    },
+    {
+      "name": "Intel Analytics Service",
+      "displayName": "Intel Analytics Service",
+      "state": "Stopped",
+      "startMode": "Manual",
+      "vendorHint": "intel-other",
+      "pathName": "C:\\WINDOWS\\System32\\drivers\\Intel\\ICPS\\IntelAnalyticsService.exe"
+    },
+    {
+      "name": "Intel Connectivity Network Service",
+      "displayName": "Intel Connectivity Network Service",
+      "state": "Stopped",
+      "startMode": "Manual",
+      "vendorHint": "intel-other",
+      "pathName": "C:\\WINDOWS\\System32\\drivers\\Intel\\ICPS\\IntelConnectivityNetworkService.exe"
+    },
+    {
+      "name": "Intel Provider Data Helper Service",
+      "displayName": "Intel Provider Data Helper Service",
+      "state": "Stopped",
+      "startMode": "Manual",
+      "vendorHint": "intel-other",
+      "pathName": "C:\\WINDOWS\\System32\\drivers\\Intel\\ICPS\\IntelProviderDataHelperService.exe"
+    },
+    {
+      "name": "Intel(R) SUR QC SAM",
+      "displayName": "Intel(R) SUR QC Software Asset Manager",
+      "state": "Stopped",
+      "startMode": "Manual",
+      "vendorHint": "intel-other",
+      "pathName": "\"C:\\Program Files\\Intel\\SUR\\QUEENCREEK\\Updater\\bin\\IntelSoftwareAssetManagerService.exe\""
+    },
+    {
+      "name": "IntelAudioService",
+      "displayName": "Intel(R) Audio Service",
+      "state": "Running",
+      "startMode": "Auto",
+      "vendorHint": "intel-other",
+      "pathName": "C:\\WINDOWS\\System32\\DriverStore\\FileRepository\\intcoed.inf_amd64_06bfdb885cd80f23\\AS\\IAS\\IntelAudioService.exe"
+    },
+    {
+      "name": "IntelCollectorService",
+      "displayName": "Intel(R) Collector Service",
+      "state": "Running",
+      "startMode": "Auto",
+      "vendorHint": "intel-other",
+      "pathName": "\"C:\\Program Files\\Intel\\CollectorService\\collector_service.exe\""
+    },
+    {
+      "name": "IntelConnectService",
+      "displayName": "IntelConnect Service",
+      "state": "Stopped",
+      "startMode": "Manual",
+      "vendorHint": "intel-other",
+      "pathName": "C:\\WINDOWS\\System32\\drivers\\Intel\\ICPS\\IntelConnectService.exe"
+    },
+    {
+      "name": "IntelCstService",
+      "displayName": "Intel(R) Context Sensing Technology Service",
+      "state": "Stopped",
+      "startMode": "Manual",
+      "vendorHint": "intel-other",
+      "pathName": "C:\\WINDOWS\\System32\\DriverStore\\FileRepository\\icst_service.inf_amd64_498370087736dc57\\intel_cst_service_standalone.exe"
+    },
+    {
+      "name": "IntelDisplayUMService",
+      "displayName": "Intel(R) Graphics Display Service",
+      "state": "Stopped",
+      "startMode": "Auto",
+      "vendorHint": "intel-other",
+      "pathName": "C:\\WINDOWS\\System32\\DriverStore\\FileRepository\\iigd_dch.inf_amd64_d30f4b19147774f0\\IntelDisplayUMService.exe"
+    },
+    {
+      "name": "IntelGraphicsSoftwareService",
+      "displayName": "Intel® Graphics Software",
+      "state": "Stopped",
+      "startMode": "Auto",
+      "vendorHint": "intel-other",
+      "pathName": "\"C:\\Program Files\\WindowsApps\\AppUp.IntelArcSoftware_26.4.2155.0_x64__8j3eq9eme6ctt\\VFS\\ProgramFilesX64\\Intel\\Intel Graphics Software\\IntelGraphicsSoftware.Service.exe\""
+    },
+    {
+      "name": "IntelTelemetryAgent",
+      "displayName": "Intel(R) Telemetry Agent Service",
+      "state": "Running",
+      "startMode": "Auto",
+      "vendorHint": "intel-other",
+      "pathName": "\"C:\\Program Files\\Intel\\TelemetryAgent\\telemetry_agent.exe\""
+    },
+    {
+      "name": "ipfsvc",
+      "displayName": "Intel(R) Innovation Platform Framework Service",
+      "state": "Running",
+      "startMode": "Auto",
+      "vendorHint": "intel-dtt",
+      "pathName": "C:\\WINDOWS\\System32\\DriverStore\\FileRepository\\ipf_cpu.inf_amd64_5fe37e024ff302b0\\ipf_uf.exe"
+    },
+    {
+      "name": "OffloadItemService",
+      "displayName": "Intel(R) ISH Offload Item Service",
+      "state": "Running",
+      "startMode": "Manual",
+      "vendorHint": "intel-other",
+      "pathName": "C:\\WINDOWS\\System32\\DriverStore\\FileRepository\\ishheci.inf_amd64_861654044e1a594c\\OffloadItemService.exe"
+    },
+    {
+      "name": "RstMwService",
+      "displayName": "Intel(R) Storage Middleware Service",
+      "state": "Running",
+      "startMode": "Auto",
+      "vendorHint": "intel-other",
+      "pathName": "C:\\WINDOWS\\System32\\DriverStore\\FileRepository\\iastorvd.inf_amd64_dca58e6fa5e6b1d9\\RstMwService.exe"
+    },
+    {
+      "name": "SupportAssistAgent",
+      "displayName": "Dell SupportAssist",
+      "state": "Running",
+      "startMode": "Auto",
+      "vendorHint": "dell-supportassist",
+      "pathName": "\"C:\\Program Files\\Dell\\SupportAssistAgent\\bin\\SupportAssistAgent.exe\""
+    },
+    {
+      "name": "SystemUsageReportSvc_QUEENCREEK",
+      "displayName": "Intel(R) System Usage Report Service SystemUsageReportSvc_QUEENCREEK",
+      "state": "Running",
+      "startMode": "Auto",
+      "vendorHint": "intel-other",
+      "pathName": "\"C:\\Program Files\\Intel\\SUR\\QUEENCREEK\\SurSvc.exe\""
+    },
+    {
+      "name": "WMIRegistrationService",
+      "displayName": "Intel(R) Management Engine WMI Provider Registration",
+      "state": "Running",
+      "startMode": "Auto",
+      "vendorHint": "intel-other",
+      "pathName": "C:\\WINDOWS\\System32\\DriverStore\\FileRepository\\mewmiprov.inf_amd64_47b9a82f73e9dad8\\WMIRegistrationService.exe"
+    }
+  ],
+  "samples": [
+    {
+      "offsetSec": 1,
+      "cpuPerfPercent": 162.0027376304313,
+      "effectiveClockMHz": 5832.098554695527,
+      "cpuLoadPercent": 100,
+      "memUsedPercent": 87.26307808946171,
+      "commitPercent": 61.42836791962114,
+      "diskActivePercent": 4.025967022810008,
+      "diskQueue": 0
+    },
+    {
+      "offsetSec": 2,
+      "cpuPerfPercent": 162.3590166116782,
+      "effectiveClockMHz": 5844.924598020414,
+      "cpuLoadPercent": 72.26870409490675,
+      "memUsedPercent": 86.29643669446551,
+      "commitPercent": 60.717256567607926,
+      "diskActivePercent": 2.027957212736993,
+      "diskQueue": 0
+    },
+    {
+      "offsetSec": 3,
+      "cpuPerfPercent": 143.52351281386152,
+      "effectiveClockMHz": 5166.846461299015,
+      "cpuLoadPercent": 43.37415467827367,
+      "memUsedPercent": 86.08794541319182,
+      "commitPercent": 60.46394909742846,
+      "diskActivePercent": 1.1404288730124108,
+      "diskQueue": 0
+    },
+    {
+      "offsetSec": 4,
+      "cpuPerfPercent": 138.6764312447181,
+      "effectiveClockMHz": 4992.351524809851,
+      "cpuLoadPercent": 45.924780034733885,
+      "memUsedPercent": 85.81627495577457,
+      "commitPercent": 60.32759662725208,
+      "diskActivePercent": 4.2699460871854455,
+      "diskQueue": 0
+    }
+  ],
+  "sampling": {
+    "sampleCount": 4,
+    "intervalSec": 1,
+    "avgEffectiveClockMHz": 5459.055284706202,
+    "minEffectiveClockMHz": 4992.351524809851,
+    "avgFreqRatioPercent": 151.64042457517226,
+    "lowFreqSamplePercent": 0,
+    "avgCpuLoadPercent": 65.39190970197858,
+    "maxCpuLoadPercent": 100,
+    "avgMemUsedPercent": 86.3659337882234,
+    "maxMemUsedPercent": 87.26307808946171,
+    "avgCommitPercent": 60.73429255297741,
+    "avgDiskActivePercent": 2.8660747989362143,
+    "avgDiskQueue": 0
+  },
+  "processes": [
+    {
+      "name": "MsMpEng",
+      "pid": 6908,
+      "cpuPercent": 9,
+      "workingSetMB": 268.96875
+    },
+    {
+      "name": "System",
+      "pid": 4,
+      "cpuPercent": 4.642857142857143,
+      "workingSetMB": 0.01171875
+    },
+    {
+      "name": "svchost",
+      "pid": 3100,
+      "cpuPercent": 4.642857142857143,
+      "workingSetMB": 4.9296875
+    },
+    {
+      "name": "services",
+      "pid": 880,
+      "cpuPercent": 4.642857142857143,
+      "workingSetMB": 7.515625
+    },
+    {
+      "name": "esrv_svc",
+      "pid": 29592,
+      "cpuPercent": 3.2142857142857144,
+      "workingSetMB": 218.59375
+    },
+    {
+      "name": "claude",
+      "pid": 5372,
+      "cpuPercent": 2.5,
+      "workingSetMB": 91.36328125
+    },
+    {
+      "name": "Code",
+      "pid": 29420,
+      "cpuPercent": 2.5,
+      "workingSetMB": 46.1875
+    },
+    {
+      "name": "lsass",
+      "pid": 1988,
+      "cpuPercent": 1.7857142857142858,
+      "workingSetMB": 9.140625
+    },
+    {
+      "name": "dwm",
+      "pid": 2600,
+      "cpuPercent": 1.4285714285714286,
+      "workingSetMB": 139.125
+    },
+    {
+      "name": "WmiPrvSE",
+      "pid": 26284,
+      "cpuPercent": 1.4285714285714286,
+      "workingSetMB": 6.74609375
+    },
+    {
+      "name": "msedgewebview2",
+      "pid": 21600,
+      "cpuPercent": 1.0714285714285714,
+      "workingSetMB": 116.3125
+    },
+    {
+      "name": "WmiPrvSE",
+      "pid": 8888,
+      "cpuPercent": 1.0714285714285714,
+      "workingSetMB": 32.55078125
+    },
+    {
+      "name": "claude",
+      "pid": 28576,
+      "cpuPercent": 1.0714285714285714,
+      "workingSetMB": 244.05859375
+    },
+    {
+      "name": "claude",
+      "pid": 14484,
+      "cpuPercent": 1.0714285714285714,
+      "workingSetMB": 334.203125
+    },
+    {
+      "name": "ssh",
+      "pid": 28572,
+      "cpuPercent": 0.7142857142857143,
+      "workingSetMB": 2.33203125
+    },
+    {
+      "name": "colltest",
+      "pid": 3252,
+      "cpuPercent": 0.7142857142857143,
+      "workingSetMB": 12.3203125
+    },
+    {
+      "name": "Code",
+      "pid": 20932,
+      "cpuPercent": 0.7142857142857143,
+      "workingSetMB": 132.9140625
+    },
+    {
+      "name": "MEEDRInferenceEngine",
+      "pid": 16800,
+      "cpuPercent": 0.35714285714285715,
+      "workingSetMB": 9.671875
+    },
+    {
+      "name": "svchost",
+      "pid": 4772,
+      "cpuPercent": 0.35714285714285715,
+      "workingSetMB": 25.58984375
+    },
+    {
+      "name": "Weixin",
+      "pid": 26720,
+      "cpuPercent": 0.35714285714285715,
+      "workingSetMB": 139.93359375
+    },
+    {
+      "name": "logioptionsplus_appbroker",
+      "pid": 29348,
+      "cpuPercent": 0.35714285714285715,
+      "workingSetMB": 1.55859375
+    },
+    {
+      "name": "verge-mihomo",
+      "pid": 21944,
+      "cpuPercent": 0.35714285714285715,
+      "workingSetMB": 57.99609375
+    },
+    {
+      "name": "svchost",
+      "pid": 2740,
+      "cpuPercent": 0.35714285714285715,
+      "workingSetMB": 3.296875
+    },
+    {
+      "name": "WeChatAppEx",
+      "pid": 19588,
+      "cpuPercent": 0.35714285714285715,
+      "workingSetMB": 25.36328125
+    },
+    {
+      "name": "csrss",
+      "pid": 1984,
+      "cpuPercent": 0.35714285714285715,
+      "workingSetMB": 1.3984375
+    }
+  ],
+  "startupItems": [
+    {
+      "name": "OneDrive",
+      "command": "\"C:\\Program Files\\Microsoft OneDrive\\OneDrive.exe\" /background",
+      "location": "HKU\\S-1-5-21-902552475-377745162-620685821-2145\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+      "user": "SOLISIDE\\01260062",
+      "reviewWorthy": false
+    },
+    {
+      "name": "org.openvpn.client",
+      "command": "C:\\Program Files\\OpenVPN Connect\\OpenVPNConnect.exe --opened-at-login --minimize",
+      "location": "HKU\\S-1-5-21-902552475-377745162-620685821-2145\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+      "user": "SOLISIDE\\01260062",
+      "reviewWorthy": true
+    },
+    {
+      "name": "DingTalk",
+      "command": "C:\\Program Files (x86)\\DingDing\\DingtalkLauncher.exe /autorun",
+      "location": "HKU\\S-1-5-21-902552475-377745162-620685821-2145\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+      "user": "SOLISIDE\\01260062",
+      "reviewWorthy": true
+    },
+    {
+      "name": "KShareService",
+      "command": "C:\\Users\\01260062\\AppData\\Local\\KShare\\KShareService.exe",
+      "location": "HKU\\S-1-5-21-902552475-377745162-620685821-2145\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+      "user": "SOLISIDE\\01260062",
+      "reviewWorthy": true
+    },
+    {
+      "name": "Weixin",
+      "command": "\"C:\\Program Files\\Tencent\\Weixin\\Weixin.exe\" -autorun",
+      "location": "HKU\\S-1-5-21-902552475-377745162-620685821-2145\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+      "user": "SOLISIDE\\01260062",
+      "reviewWorthy": true
+    },
+    {
+      "name": "EdrawMaxTray",
+      "command": "\"C:\\Program Files\\Edrawsoft\\EdrawMax\\EdrawMaxTray.exe\" --edrawmax_tray_auto_startup",
+      "location": "HKU\\S-1-5-21-902552475-377745162-620685821-2145\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+      "user": "SOLISIDE\\01260062",
+      "reviewWorthy": true
+    },
+    {
+      "name": "Claude",
+      "command": "\"C:\\Users\\01260062\\AppData\\Local\\AnthropicClaude\\claude.exe\" --startup",
+      "location": "HKU\\S-1-5-21-902552475-377745162-620685821-2145\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+      "user": "SOLISIDE\\01260062",
+      "reviewWorthy": true
+    },
+    {
+      "name": "MicrosoftEdgeAutoLaunch_87AD18CF231876D695526C9D0BF480B0",
+      "command": "\"C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe\" --no-startup-window --win-session-start",
+      "location": "HKU\\S-1-5-21-902552475-377745162-620685821-2145\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+      "user": "SOLISIDE\\01260062",
+      "reviewWorthy": true
+    },
+    {
+      "name": "SecurityHealth",
+      "command": "%windir%\\system32\\SecurityHealthSystray.exe",
+      "location": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+      "user": "Public",
+      "reviewWorthy": false
+    },
+    {
+      "name": "RtkAudUService",
+      "command": "\"C:\\WINDOWS\\System32\\DriverStore\\FileRepository\\realtekservice.inf_amd64_d4e2f40b8460b254\\RtkAudUService64.exe\" -background",
+      "location": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+      "user": "Public",
+      "reviewWorthy": false
+    },
+    {
+      "name": "WavesSvc",
+      "command": "\"C:\\WINDOWS\\System32\\DriverStore\\FileRepository\\wavesapo13de.inf_amd64_bd76250397db5d54\\WavesSvc64.exe\" -Jack",
+      "location": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+      "user": "Public",
+      "reviewWorthy": false
+    },
+    {
+      "name": "Logitech Download Assistant",
+      "command": "C:\\Windows\\system32\\rundll32.exe C:\\Windows\\System32\\LogiLDA.dll,LogiFetch",
+      "location": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+      "user": "Public",
+      "reviewWorthy": false
+    },
+    {
+      "name": "Logi Download Assistant",
+      "command": "\"C:\\Program Files\\LogiDownloadAssistant\\bin\\logi_download_assistant.exe\" -system-restarted",
+      "location": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+      "user": "Public",
+      "reviewWorthy": true
+    },
+    {
+      "name": "Everything",
+      "command": "\"C:\\Program Files\\Everything\\Everything.exe\" -startup",
+      "location": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+      "user": "Public",
+      "reviewWorthy": true
+    }
+  ],
+  "scheduledTasks": [
+    {
+      "name": "OneDrive Per-Machine Standalone Update Task",
+      "path": "\\",
+      "state": "Ready"
+    },
+    {
+      "name": "OneDrive Reporting Task-S-1-5-21-902552475-377745162-620685821-2145",
+      "path": "\\",
+      "state": "Ready"
+    },
+    {
+      "name": "OneDrive Startup Task-S-1-5-21-902552475-377745162-620685821-2145",
+      "path": "\\",
+      "state": "Ready"
+    },
+    {
+      "name": "SoftLandingCreativeManagementTask",
+      "path": "\\SoftLanding\\S-1-5-21-4074804991-419118793-2040769512-1001\\",
+      "state": "Ready"
+    },
+    {
+      "name": "SoftLandingCreativeManagementTask",
+      "path": "\\SoftLanding\\S-1-5-21-902552475-377745162-620685821-2145\\",
+      "state": "Ready"
+    },
+    {
+      "name": "SoftLandingCreativeManagementTask",
+      "path": "\\SoftLanding\\S-1-5-21-902552475-377745162-620685821-2223\\",
+      "state": "Ready"
+    }
+  ],
+  "installedApps": [
+    {
+      "name": "7-Zip 26.01 (x64)",
+      "version": "26.01",
+      "publisher": "Igor Pavlov",
+      "category": "archive"
+    },
+    {
+      "name": "app_shim",
+      "version": "",
+      "publisher": "",
+      "category": ""
+    },
+    {
+      "name": "boss-zhipin",
+      "version": "1.7.4",
+      "publisher": "BOSS直聘",
+      "category": ""
+    },
+    {
+      "name": "Clash Verge",
+      "version": "2.5.1",
+      "publisher": "Clash Verge Rev",
+      "category": ""
+    },
+    {
+      "name": "Claude",
+      "version": "1.12603.1",
+      "publisher": "Anthropic PBC",
+      "category": ""
+    },
+    {
+      "name": "Claude Code",
+      "version": "2.1.140",
+      "publisher": "Anthropic PBC",
+      "category": ""
+    },
+    {
+      "name": "Dell Command | Update",
+      "version": "5.7.0",
+      "publisher": "Dell Inc.",
+      "category": ""
+    },
+    {
+      "name": "Dell Core Services",
+      "version": "1.14.151.0",
+      "publisher": "Dell, Inc.",
+      "category": ""
+    },
+    {
+      "name": "Dell SupportAssist",
+      "version": "5.1.1.3567",
+      "publisher": "Dell Inc.",
+      "category": ""
+    },
+    {
+      "name": "Dell SupportAssist OS Recovery Plugin for Dell Update",
+      "version": "5.5.16.1",
+      "publisher": "Dell Inc.",
+      "category": ""
+    },
+    {
+      "name": "Dell SupportAssist Remediation",
+      "version": "5.5.15.2",
+      "publisher": "Dell Inc.",
+      "category": ""
+    },
+    {
+      "name": "EdrawMax(Build 15.2.1.1523)",
+      "version": "15.2.1.1523",
+      "publisher": "EdrawSoft Co.,Ltd.",
+      "category": ""
+    },
+    {
+      "name": "Everything 1.4.1.1032 (x64)",
+      "version": "1.4.1.1032",
+      "publisher": "voidtools",
+      "category": ""
+    },
+    {
+      "name": "Feishu",
+      "version": "7.69.9",
+      "publisher": "Beijing Feishu Technology Co., Ltd.",
+      "category": ""
+    },
+    {
+      "name": "Git",
+      "version": "2.53.0.2",
+      "publisher": "The Git Development Community",
+      "category": ""
+    },
+    {
+      "name": "GitHub CLI",
+      "version": "2.93.0",
+      "publisher": "GitHub, Inc.",
+      "category": ""
+    },
+    {
+      "name": "Go Programming Language amd64 go1.26.1",
+      "version": "1.26.1",
+      "publisher": "https://go.dev",
+      "category": ""
+    },
+    {
+      "name": "Google Chrome",
+      "version": "148.0.7778.179",
+      "publisher": "Google LLC",
+      "category": "browser"
+    },
+    {
+      "name": "HID OMNIKEY 5127/5427 CK PC/SC Driver",
+      "version": "1.0.1.0",
+      "publisher": "HID Global Corporation",
+      "category": ""
+    },
+    {
+      "name": "Intel Connectivity Performance Suite Drivers",
+      "version": "40.25.2228",
+      "publisher": "Intel Corporation",
+      "category": ""
+    },
+    {
+      "name": "Intel(R) Computing Improvement Program",
+      "version": "2.4.11179",
+      "publisher": "Intel Corporation",
+      "category": ""
+    },
+    {
+      "name": "Intel(R) Graphics Software \u0026 Drivers",
+      "version": "1.0.1210.2",
+      "publisher": "Intel(R) Corporation",
+      "category": ""
+    },
+    {
+      "name": "Intel(R) NPU Software \u0026 Drivers",
+      "version": "1.0.17.0",
+      "publisher": "Intel(R) Corporation",
+      "category": ""
+    },
+    {
+      "name": "Intel® Driver \u0026 Support Assistant",
+      "version": "26.1.0.2",
+      "publisher": "Intel",
+      "category": ""
+    },
+    {
+      "name": "Intel® Graphics Software",
+      "version": "26.8.2209.3",
+      "publisher": "Intel Corporation",
+      "category": ""
+    },
+    {
+      "name": "Logi Download Assistant",
+      "version": "2.0.529",
+      "publisher": "Logitech",
+      "category": ""
+    },
+    {
+      "name": "Logi Options+",
+      "version": "2.4.903778",
+      "publisher": "Logitech",
+      "category": ""
+    },
+    {
+      "name": "Logi Plugin Service",
+      "version": "6.3.1.2628",
+      "publisher": "Logitech",
+      "category": ""
+    },
+    {
+      "name": "ManageEngine UEMS - Agent",
+      "version": "11.4.2500.41.W",
+      "publisher": "Zoho Corporation Pvt. Ltd.",
+      "category": ""
+    },
+    {
+      "name": "Microsoft ASP.NET Core 8.0.27 - Shared Framework (x64)",
+      "version": "8.0.27.26230",
+      "publisher": "Microsoft Corporation",
+      "category": ""
+    },
+    {
+      "name": "Microsoft ASP.NET Core 8.0.27 - Shared Framework (x86)",
+      "version": "8.0.27.26230",
+      "publisher": "Microsoft Corporation",
+      "category": ""
+    },
+    {
+      "name": "Microsoft Edge",
+      "version": "149.0.4022.62",
+      "publisher": "Microsoft Corporation",
+      "category": ""
+    },
+    {
+      "name": "Microsoft Office 家庭和学生版 2021 - zh-cn",
+      "version": "16.0.20026.20140",
+      "publisher": "Microsoft Corporation",
+      "category": ""
+    },
+    {
+      "name": "Microsoft OneDrive",
+      "version": "26.088.0510.0004",
+      "publisher": "Microsoft Corporation",
+      "category": ""
+    },
+    {
+      "name": "Microsoft OneNote - zh-cn",
+      "version": "16.0.20026.20140",
+      "publisher": "Microsoft Corporation",
+      "category": ""
+    },
+    {
+      "name": "Microsoft Visual C++ 2015-2022 Redistributable (x64) - 14.51.36231",
+      "version": "14.51.36231.0",
+      "publisher": "Microsoft Corporation",
+      "category": ""
+    },
+    {
+      "name": "Microsoft Visual C++ 2015-2022 Redistributable (x86) - 14.51.36231",
+      "version": "14.51.36231.0",
+      "publisher": "Microsoft Corporation",
+      "category": ""
+    },
+    {
+      "name": "Microsoft Visual Studio Code (User)",
+      "version": "1.124.2",
+      "publisher": "Microsoft Corporation",
+      "category": ""
+    },
+    {
+      "name": "Microsoft Windows Desktop Runtime - 6.0.36 (x64)",
+      "version": "6.0.36.34217",
+      "publisher": "Microsoft Corporation",
+      "category": ""
+    },
+    {
+      "name": "Microsoft Windows Desktop Runtime - 8.0.27 (x64)",
+      "version": "8.0.27.36030",
+      "publisher": "Microsoft Corporation",
+      "category": ""
+    },
+    {
+      "name": "Microsoft Windows Desktop Runtime - 8.0.27 (x86)",
+      "version": "8.0.27.36030",
+      "publisher": "Microsoft Corporation",
+      "category": ""
+    },
+    {
+      "name": "Microsoft Windows Desktop Runtime - 9.0.16 (x64)",
+      "version": "9.0.16.36030",
+      "publisher": "Microsoft Corporation",
+      "category": ""
+    },
+    {
+      "name": "Microsoft Windows Desktop Runtime - 9.0.3 (x64)",
+      "version": "9.0.3.34613",
+      "publisher": "Microsoft Corporation",
+      "category": ""
+    },
+    {
+      "name": "Microsoft Windows Desktop Runtime 10.0.8 (x64)",
+      "version": "10.0.8.50000",
+      "publisher": "Microsoft Corporation",
+      "category": ""
+    },
+    {
+      "name": "Node.js",
+      "version": "24.15.0",
+      "publisher": "Node.js Foundation",
+      "category": ""
+    },
+    {
+      "name": "NoMachine",
+      "version": "9.5.7",
+      "publisher": "NoMachine S.a.r.l.",
+      "category": ""
+    },
+    {
+      "name": "Notepad-- 版本 3.6.4",
+      "version": "3.6.4",
+      "publisher": "ndd开源组织",
+      "category": ""
+    },
+    {
+      "name": "Obsidian",
+      "version": "1.12.4",
+      "publisher": "Obsidian",
+      "category": ""
+    },
+    {
+      "name": "oneAPI Level Zero",
+      "version": "1.28.2",
+      "publisher": "Intel",
+      "category": ""
+    },
+    {
+      "name": "OpenVPN Connect",
+      "version": "3.8.0",
+      "publisher": "OpenVPN Inc.",
+      "category": ""
+    },
+    {
+      "name": "Postman x64 12.11.0",
+      "version": "12.11.0",
+      "publisher": "Postman",
+      "category": ""
+    },
+    {
+      "name": "Python 3.14.3 (64-bit)",
+      "version": "3.14.3150.0",
+      "publisher": "Python Software Foundation",
+      "category": ""
+    },
+    {
+      "name": "Python Launcher",
+      "version": "3.14.3150.0",
+      "publisher": "Python Software Foundation",
+      "category": ""
+    },
+    {
+      "name": "Realtek Audio Driver",
+      "version": "6.0.9954.1",
+      "publisher": "Realtek Semiconductor Corp.",
+      "category": ""
+    },
+    {
+      "name": "ToDesk",
+      "version": "4.8.5.1",
+      "publisher": "Hainan YouQu Technology Co., Ltd",
+      "category": ""
+    },
+    {
+      "name": "TRAE SOLO CN (User)",
+      "version": "0.1.15",
+      "publisher": "Beijing Yinli Catapult Technology Co., Ltd.",
+      "category": ""
+    },
+    {
+      "name": "UniVPN",
+      "version": "10781.19.0.1214",
+      "publisher": "Leagsoft company, Inc.",
+      "category": ""
+    },
+    {
+      "name": "VLC media player",
+      "version": "3.0.23",
+      "publisher": "VideoLAN",
+      "category": ""
+    },
+    {
+      "name": "WireGuard",
+      "version": "1.1",
+      "publisher": "WireGuard LLC",
+      "category": ""
+    },
+    {
+      "name": "微信",
+      "version": "4.1.9.57",
+      "publisher": "腾讯科技(深圳)有限公司",
+      "category": ""
+    },
+    {
+      "name": "电子文档安全管理系统-客户端",
+      "version": "3.20.0000",
+      "publisher": "北京亿赛通科技发展有限责任公司",
+      "category": ""
+    },
+    {
+      "name": "腾讯会议",
+      "version": "3.42.3.424",
+      "publisher": "腾讯科技(深圳)有限公司",
+      "category": ""
+    },
+    {
+      "name": "英特尔(R) 无线 Bluetooth(R)",
+      "version": "24.40.0.3",
+      "publisher": "Intel Corporation",
+      "category": ""
+    },
+    {
+      "name": "钉钉",
+      "version": "8.3.23-Release.260527009",
+      "publisher": "Alibaba (China) Network Technology Co.,Ltd.",
+      "category": ""
+    }
+  ],
+  "systemEvents": [
+    {
+      "timeCreated": "2026-06-12 14:01:55",
+      "provider": "Microsoft-Windows-DistributedCOM",
+      "eventId": 10016,
+      "level": "Warning",
+      "message": "The 应用程序-特定 permission settings do not grant 本地 激活 permission for the COM Server application with CLSID \r\n{2593F8B9-4EAF-457C-B68A-50F6B8EA6B54}\r\n and APPID \r\n{15C20B67-12E7-4BB6-92BB-7AFF07997402}\r\n "
+    },
+    {
+      "timeCreated": "2026-06-12 13:59:21",
+      "provider": "Microsoft-Windows-DistributedCOM",
+      "eventId": 10016,
+      "level": "Warning",
+      "message": "The 应用程序-特定 permission settings do not grant 本地 激活 permission for the COM Server application with CLSID \r\n{2593F8B9-4EAF-457C-B68A-50F6B8EA6B54}\r\n and APPID \r\n{15C20B67-12E7-4BB6-92BB-7AFF07997402}\r\n "
+    },
+    {
+      "timeCreated": "2026-06-12 13:55:47",
+      "provider": "Microsoft-Windows-DistributedCOM",
+      "eventId": 10016,
+      "level": "Warning",
+      "message": "The 应用程序-特定 permission settings do not grant 本地 激活 permission for the COM Server application with CLSID \r\n{2593F8B9-4EAF-457C-B68A-50F6B8EA6B54}\r\n and APPID \r\n{15C20B67-12E7-4BB6-92BB-7AFF07997402}\r\n "
+    },
+    {
+      "timeCreated": "2026-06-12 13:41:46",
+      "provider": "Microsoft-Windows-DistributedCOM",
+      "eventId": 10016,
+      "level": "Warning",
+      "message": "The 应用程序-特定 permission settings do not grant 本地 激活 permission for the COM Server application with CLSID \r\n{2593F8B9-4EAF-457C-B68A-50F6B8EA6B54}\r\n and APPID \r\n{15C20B67-12E7-4BB6-92BB-7AFF07997402}\r\n "
+    },
+    {
+      "timeCreated": "2026-06-12 13:34:51",
+      "provider": "Microsoft-Windows-DistributedCOM",
+      "eventId": 10016,
+      "level": "Warning",
+      "message": "The 应用程序-特定 permission settings do not grant 本地 激活 permission for the COM Server application with CLSID \r\n{2593F8B9-4EAF-457C-B68A-50F6B8EA6B54}\r\n and APPID \r\n{15C20B67-12E7-4BB6-92BB-7AFF07997402}\r\n "
+    },
+    {
+      "timeCreated": "2026-06-12 13:24:55",
+      "provider": "Microsoft-Windows-GroupPolicy",
+      "eventId": 1129,
+      "level": "Error",
+      "message": "The processing of Group Policy failed because of lack of network connectivity to a domain controller. This may be a transient condition. A success message would be generated once the machine gets conn"
+    },
+    {
+      "timeCreated": "2026-06-12 13:24:55",
+      "provider": "Microsoft-Windows-GroupPolicy",
+      "eventId": 1129,
+      "level": "Error",
+      "message": "The processing of Group Policy failed because of lack of network connectivity to a domain controller. This may be a transient condition. A success message would be generated once the machine gets conn"
+    },
+    {
+      "timeCreated": "2026-06-12 13:16:38",
+      "provider": "Microsoft-Windows-DistributedCOM",
+      "eventId": 10016,
+      "level": "Warning",
+      "message": "The 应用程序-特定 permission settings do not grant 本地 激活 permission for the COM Server application with CLSID \r\n{2593F8B9-4EAF-457C-B68A-50F6B8EA6B54}\r\n and APPID \r\n{15C20B67-12E7-4BB6-92BB-7AFF07997402}\r\n "
+    },
+    {
+      "timeCreated": "2026-06-12 13:12:27",
+      "provider": "Microsoft-Windows-DistributedCOM",
+      "eventId": 10016,
+      "level": "Warning",
+      "message": "The 应用程序-特定 permission settings do not grant 本地 激活 permission for the COM Server application with CLSID \r\n{2593F8B9-4EAF-457C-B68A-50F6B8EA6B54}\r\n and APPID \r\n{15C20B67-12E7-4BB6-92BB-7AFF07997402}\r\n "
+    },
+    {
+      "timeCreated": "2026-06-12 13:11:28",
+      "provider": "Microsoft-Windows-DistributedCOM",
+      "eventId": 10016,
+      "level": "Warning",
+      "message": "The 应用程序-特定 permission settings do not grant 本地 激活 permission for the COM Server application with CLSID \r\n{2593F8B9-4EAF-457C-B68A-50F6B8EA6B54}\r\n and APPID \r\n{15C20B67-12E7-4BB6-92BB-7AFF07997402}\r\n "
+    },
+    {
+      "timeCreated": "2026-06-12 13:07:04",
+      "provider": "Microsoft-Windows-DistributedCOM",
+      "eventId": 10016,
+      "level": "Warning",
+      "message": "The 应用程序-特定 permission settings do not grant 本地 激活 permission for the COM Server application with CLSID \r\n{2593F8B9-4EAF-457C-B68A-50F6B8EA6B54}\r\n and APPID \r\n{15C20B67-12E7-4BB6-92BB-7AFF07997402}\r\n "
+    },
+    {
+      "timeCreated": "2026-06-12 12:59:59",
+      "provider": "Microsoft-Windows-Time-Service",
+      "eventId": 129,
+      "level": "Warning",
+      "message": "NtpClient was unable to set a domain peer to use as a time source because of discovery error. NtpClient will try again in 15 minutes and double the reattempt interval thereafter. The error was: 找不到项目。"
+    },
+    {
+      "timeCreated": "2026-06-12 12:05:24",
+      "provider": "Microsoft-Windows-DistributedCOM",
+      "eventId": 10016,
+      "level": "Warning",
+      "message": "The 应用程序-特定 permission settings do not grant 本地 激活 permission for the COM Server application with CLSID \r\n{2593F8B9-4EAF-457C-B68A-50F6B8EA6B54}\r\n and APPID \r\n{15C20B67-12E7-4BB6-92BB-7AFF07997402}\r\n "
+    },
+    {
+      "timeCreated": "2026-06-12 12:02:57",
+      "provider": "Microsoft-Windows-DistributedCOM",
+      "eventId": 10016,
+      "level": "Warning",
+      "message": "The 应用程序-特定 permission settings do not grant 本地 激活 permission for the COM Server application with CLSID \r\n{2593F8B9-4EAF-457C-B68A-50F6B8EA6B54}\r\n and APPID \r\n{15C20B67-12E7-4BB6-92BB-7AFF07997402}\r\n "
+    },
+    {
+      "timeCreated": "2026-06-12 12:02:35",
+      "provider": "Microsoft-Windows-Time-Service",
+      "eventId": 129,
+      "level": "Warning",
+      "message": "NtpClient was unable to set a domain peer to use as a time source because of discovery error. NtpClient will try again in 15 minutes and double the reattempt interval thereafter. The error was: 找不到项目。"
+    },
+    {
+      "timeCreated": "2026-06-12 11:50:01",
+      "provider": "Microsoft-Windows-Time-Service",
+      "eventId": 129,
+      "level": "Warning",
+      "message": "NtpClient was unable to set a domain peer to use as a time source because of discovery error. NtpClient will try again in 15 minutes and double the reattempt interval thereafter. The error was: 找不到项目。"
+    },
+    {
+      "timeCreated": "2026-06-12 11:39:23",
+      "provider": "Service Control Manager",
+      "eventId": 7009,
+      "level": "Error",
+      "message": "A timeout was reached (30000 milliseconds) while waiting for the Intel(R) SUR QC Software Asset Manager service to connect."
+    },
+    {
+      "timeCreated": "2026-06-12 11:39:19",
+      "provider": "Microsoft-Windows-Time-Service",
+      "eventId": 129,
+      "level": "Warning",
+      "message": "NtpClient was unable to set a domain peer to use as a time source because of discovery error. NtpClient will try again in 15 minutes and double the reattempt interval thereafter. The error was: 找不到项目。"
+    },
+    {
+      "timeCreated": "2026-06-12 11:34:55",
+      "provider": "Microsoft-Windows-GroupPolicy",
+      "eventId": 1129,
+      "level": "Error",
+      "message": "The processing of Group Policy failed because of lack of network connectivity to a domain controller. This may be a transient condition. A success message would be generated once the machine gets conn"
+    },
+    {
+      "timeCreated": "2026-06-12 11:34:55",
+      "provider": "Microsoft-Windows-GroupPolicy",
+      "eventId": 1130,
+      "level": "Error",
+      "message": "Startup script failed. \r\n\tGPO Name : Bypass UAC for Specific Apps\r\n\tGPO File System Path : \\\\i.soliside.com\\SysVol\\i.soliside.com\\Policies\\{A6D3F645-9F25-4440-AFE4-C87C384EF68D}\\Machine\r\n\tScript Name:"
+    },
+    {
+      "timeCreated": "2026-06-12 11:31:58",
+      "provider": "Microsoft-Windows-DistributedCOM",
+      "eventId": 10016,
+      "level": "Warning",
+      "message": "The 应用程序-特定 permission settings do not grant 本地 启动 permission for the COM Server application with CLSID \r\nWindows.SecurityCenter.WscDataProtection\r\n and APPID \r\n不可用\r\n to the user NT AUTHORITY\\SYSTEM S"
+    },
+    {
+      "timeCreated": "2026-06-12 11:31:58",
+      "provider": "Microsoft-Windows-WinRM",
+      "eventId": 10154,
+      "level": "Warning",
+      "message": "The WinRM service failed to create the following SPNs: WSMAN/LAPTOP25054.i.soliside.com; WSMAN/LAPTOP25054. \r\n\r\n Additional Data \r\n The error received was 1355: %%1355.\r\n\r\n User Action \r\n The SPNs can"
+    },
+    {
+      "timeCreated": "2026-06-12 11:31:40",
+      "provider": "Microsoft-Windows-FilterManager",
+      "eventId": 11,
+      "level": "Warning",
+      "message": "File System Filter 'MEARWFltDriver' (Version 10.0, ‎2025‎-‎01‎-‎13T13:54:42.000000000Z) does not support bypass IO.\r\nSupported features: 0x7."
+    },
+    {
+      "timeCreated": "2026-06-12 11:31:14",
+      "provider": "Microsoft-Windows-Time-Service",
+      "eventId": 129,
+      "level": "Warning",
+      "message": "NtpClient was unable to set a domain peer to use as a time source because of discovery error. NtpClient will try again in 15 minutes and double the reattempt interval thereafter. The error was: 找不到项目。"
+    },
+    {
+      "timeCreated": "2026-06-12 11:31:07",
+      "provider": "Microsoft-Windows-DNS-Client",
+      "eventId": 8016,
+      "level": "Warning",
+      "message": "The system failed to register host (A or AAAA) resource records (RRs) for network adapter\r\nwith settings:\r\n\r\n           Adapter Name : {3D962617-245F-4656-8028-CD4D7C52DBDE}\r\n           Host Name : LA"
+    },
+    {
+      "timeCreated": "2026-06-12 11:30:57",
+      "provider": "Microsoft-Windows-DNS-Client",
+      "eventId": 8016,
+      "level": "Warning",
+      "message": "The system failed to register host (A or AAAA) resource records (RRs) for network adapter\r\nwith settings:\r\n\r\n           Adapter Name : {3D962617-245F-4656-8028-CD4D7C52DBDE}\r\n           Host Name : LA"
+    },
+    {
+      "timeCreated": "2026-06-12 11:30:53",
+      "provider": "Microsoft-Windows-TerminalServices-RemoteConnectionManager",
+      "eventId": 1067,
+      "level": "Warning",
+      "message": "The RD Session Host server cannot register 'TERMSRV' Service Principal Name to be used for server authentication. The following error occured: 指定的域不存在，或无法联系。\r\n."
+    },
+    {
+      "timeCreated": "2026-06-12 11:30:52",
+      "provider": "Microsoft-Windows-DistributedCOM",
+      "eventId": 10016,
+      "level": "Warning",
+      "message": "The 应用程序-特定 permission settings do not grant 本地 激活 permission for the COM Server application with CLSID \r\n{9EA82395-E31B-41CA-8DF7-EC1CEE7194DF}\r\n and APPID \r\n{2ED83BAA-B2FD-43B1-99BF-E6149C622692}\r\n "
+    },
+    {
+      "timeCreated": "2026-06-12 11:30:51",
+      "provider": "Microsoft-Windows-GroupPolicy",
+      "eventId": 1129,
+      "level": "Error",
+      "message": "The processing of Group Policy failed because of lack of network connectivity to a domain controller. This may be a transient condition. A success message would be generated once the machine gets conn"
+    },
+    {
+      "timeCreated": "2026-06-12 11:30:33",
+      "provider": "Microsoft-Windows-DNS-Client",
+      "eventId": 8020,
+      "level": "Warning",
+      "message": "The system failed to register host (A or AAAA) resource records (RRs) for network adapter\r\nwith settings:\r\n\r\n           Adapter Name : {3D962617-245F-4656-8028-CD4D7C52DBDE}\r\n           Host Name : LA"
+    },
+    {
+      "timeCreated": "2026-06-12 11:29:57",
+      "provider": "Microsoft-Windows-DistributedCOM",
+      "eventId": 10016,
+      "level": "Warning",
+      "message": "The 应用程序-特定 permission settings do not grant 本地 激活 permission for the COM Server application with CLSID \r\n{2593F8B9-4EAF-457C-B68A-50F6B8EA6B54}\r\n and APPID \r\n{15C20B67-12E7-4BB6-92BB-7AFF07997402}\r\n "
+    },
+    {
+      "timeCreated": "2026-06-12 11:29:54",
+      "provider": "Microsoft-Windows-Time-Service",
+      "eventId": 129,
+      "level": "Warning",
+      "message": "NtpClient was unable to set a domain peer to use as a time source because of discovery error. NtpClient will try again in 15 minutes and double the reattempt interval thereafter. The error was: 找不到项目。"
+    },
+    {
+      "timeCreated": "2026-06-12 11:29:54",
+      "provider": "Microsoft-Windows-Kernel-Processor-Power",
+      "eventId": 37,
+      "level": "Warning",
+      "message": "The speed of processor 13 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 71 seconds since the last report."
+    },
+    {
+      "timeCreated": "2026-06-12 11:29:54",
+      "provider": "Microsoft-Windows-Kernel-Processor-Power",
+      "eventId": 37,
+      "level": "Warning",
+      "message": "The speed of processor 9 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 71 seconds since the last report."
+    },
+    {
+      "timeCreated": "2026-06-12 11:29:54",
+      "provider": "Microsoft-Windows-Kernel-Processor-Power",
+      "eventId": 37,
+      "level": "Warning",
+      "message": "The speed of processor 5 in group 0 is being limited by system firmware. The processor has been in this reduced performance state for 71 seconds since the last report."
+    },
+    {
+      "timeCreated": "2026-06-12 11:29:34",
+      "provider": "Microsoft-Windows-DNS-Client",
+      "eventId": 8016,
+      "level": "Warning",
+      "message": "The system failed to register host (A or AAAA) resource records (RRs) for network adapter\r\nwith settings:\r\n\r\n           Adapter Name : {3D962617-245F-4656-8028-CD4D7C52DBDE}\r\n           Host Name : LA"
+    },
+    {
+      "timeCreated": "2026-06-12 11:29:24",
+      "provider": "Microsoft-Windows-DNS-Client",
+      "eventId": 8016,
+      "level": "Warning",
+      "message": "The system failed to register host (A or AAAA) resource records (RRs) for network adapter\r\nwith settings:\r\n\r\n           Adapter Name : {3D962617-245F-4656-8028-CD4D7C52DBDE}\r\n           Host Name : LA"
+    },
+    {
+      "timeCreated": "2026-06-12 11:29:07",
+      "provider": "Microsoft-Windows-DistributedCOM",
+      "eventId": 10016,
+      "level": "Warning",
+      "message": "The 应用程序-特定 permission settings do not grant 本地 激活 permission for the COM Server application with CLSID \r\n{6B3B8D23-FA8D-40B9-8DBD-B950333E2C52}\r\n and APPID \r\n{4839DDB7-58C2-48F5-8283-E1D1807D0D7D}\r\n "
+    },
+    {
+      "timeCreated": "2026-06-12 11:29:07",
+      "provider": "Microsoft-Windows-DistributedCOM",
+      "eventId": 10016,
+      "level": "Warning",
+      "message": "The 应用程序-特定 permission settings do not grant 本地 激活 permission for the COM Server application with CLSID \r\n{6B3B8D23-FA8D-40B9-8DBD-B950333E2C52}\r\n and APPID \r\n{4839DDB7-58C2-48F5-8283-E1D1807D0D7D}\r\n "
+    },
+    {
+      "timeCreated": "2026-06-12 11:29:06",
+      "provider": "NETLOGON",
+      "eventId": 5719,
+      "level": "Error",
+      "message": "This computer was not able to set up a secure session with a domain controller in domain SOLISIDE due to the following: \r\nWe can't sign you in with this credential because your domain isn't available."
+    }
+  ],
+  "analysis": {
+    "score": 67,
+    "severity": "warning",
+    "primaryRuleId": "rule.memory-pressure",
+    "primaryParams": {
+      "avgCommitPercent": 60.7,
+      "avgUsedPercent": 86.4,
+      "maxUsedPercent": 87.3
+    },
+    "findings": [
+      {
+        "ruleId": "rule.memory-pressure",
+        "severity": "info",
+        "params": {
+          "avgCommitPercent": 60.7,
+          "avgUsedPercent": 86.4,
+          "maxUsedPercent": 87.3
+        },
+        "evidence": [
+          {
+            "evidenceId": "ev.mem-used",
+            "params": {
+              "avgPercent": 86.4,
+              "maxPercent": 87.3
+            }
+          },
+          {
+            "evidenceId": "ev.commit",
+            "params": {
+              "avgPercent": 60.7
+            }
+          }
+        ]
+      },
+      {
+        "ruleId": "rule.startup-load",
+        "severity": "warning",
+        "params": {
+          "count": 15,
+          "startupCount": 9,
+          "taskCount": 6
+        },
+        "evidence": [
+          {
+            "evidenceId": "ev.startup-count",
+            "params": {
+              "count": 9
+            }
+          },
+          {
+            "evidenceId": "ev.task-count",
+            "params": {
+              "count": 6
+            }
+          }
+        ]
+      },
+      {
+        "ruleId": "rule.vendor-services",
+        "severity": "warning",
+        "params": {
+          "count": 16
+        },
+        "evidence": [
+          {
+            "evidenceId": "ev.vendor-service-count",
+            "params": {
+              "count": 16
+            }
+          }
+        ]
+      }
+    ],
+    "attribution": null,
+    "categoryScores": {
+      "memory": 8,
+      "startup": 15,
+      "vendor": 10
+    }
+  },
+  "collectorNotes": null
+}

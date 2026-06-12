@@ -37,12 +37,22 @@ func CollectFor(ctx context.Context, mode model.ScanMode, durationSec, intervalS
 	var power model.PowerStateInfo
 	var events []model.ThrottleEvent
 	var services []model.ServiceInfo
-	var powerNotes, eventNotes, serviceNotes []string
+	var procs []model.ProcessInfo
+	var startup []model.StartupItem
+	var tasks []model.ScheduledTask
+	var apps []model.InstalledApp
+	var sysEvents []model.EventInfo
+	noteSets := make([][]string, 8)
 
-	wg.Add(3)
-	go func() { defer wg.Done(); power = collectPower(&powerNotes) }()
-	go func() { defer wg.Done(); events = collectThrottleEvents(&eventNotes) }()
-	go func() { defer wg.Done(); services = collectVendorServices(&serviceNotes) }()
+	wg.Add(8)
+	go func() { defer wg.Done(); power = collectPower(&noteSets[0]) }()
+	go func() { defer wg.Done(); events = collectThrottleEvents(&noteSets[1]) }()
+	go func() { defer wg.Done(); services = collectVendorServices(&noteSets[2]) }()
+	go func() { defer wg.Done(); procs = collectProcesses(cpu.LogicalProcessors, &noteSets[3]) }()
+	go func() { defer wg.Done(); startup = collectStartupItems(&noteSets[4]) }()
+	go func() { defer wg.Done(); tasks = collectScheduledTasks(&noteSets[5]) }()
+	go func() { defer wg.Done(); apps = collectInstalledApps(&noteSets[6]) }()
+	go func() { defer wg.Done(); sysEvents = collectSystemEvents(&noteSets[7]) }()
 
 	totalSamples := durationSec / intervalSec
 	report.Samples = sampleSeries(ctx, totalSamples, intervalSec, cpu.BaseClockMHz, mem.TotalMB, progress, notes)
@@ -52,9 +62,14 @@ func CollectFor(ctx context.Context, mode model.ScanMode, durationSec, intervalS
 	report.Power = power
 	report.ThrottleEvents = events
 	report.VendorServices = services
-	*notes = append(*notes, powerNotes...)
-	*notes = append(*notes, eventNotes...)
-	*notes = append(*notes, serviceNotes...)
+	report.Processes = procs
+	report.StartupItems = startup
+	report.ScheduledTasks = tasks
+	report.InstalledApps = apps
+	report.SystemEvents = sysEvents
+	for _, ns := range noteSets {
+		*notes = append(*notes, ns...)
+	}
 
 	return report
 }

@@ -12,7 +12,10 @@ const state = {
   scanning: false,
   progress: { done: 0, total: 1 },
   error: '',
+  tab: 'overview',
 };
+
+const TABS = ['overview', 'processes', 'startup', 'services', 'software', 'events'];
 
 const app = document.getElementById('app');
 
@@ -44,6 +47,7 @@ async function startScan(mode) {
   render();
   try {
     state.report = await RunScan(mode);
+    state.tab = 'overview';
   } catch (e) {
     state.error = String(e);
   }
@@ -61,23 +65,156 @@ function scoreClass(severity) {
   return { good: 'score-good', warning: 'score-warning', critical: 'score-critical' }[severity] || 'score-good';
 }
 
-function sparkline(samples, baseMHz) {
-  if (!samples || samples.length < 2) return '';
-  const w = 560, h = 120, pad = 6;
-  const max = Math.max(baseMHz, ...samples.map(s => s.effectiveClockMHz)) * 1.05;
-  const pts = samples.map((s, i) => {
-    const x = pad + (i / (samples.length - 1)) * (w - pad * 2);
-    const y = h - pad - (s.effectiveClockMHz / max) * (h - pad * 2);
+// Generic polyline sparkline over sample values.
+function sparkline(values, { max, lines = [] } = {}) {
+  if (!values || values.length < 2) return '';
+  const w = 560, h = 110, pad = 6;
+  const top = (max ?? Math.max(...values)) * 1.05 || 1;
+  const pts = values.map((v, i) => {
+    const x = pad + (i / (values.length - 1)) * (w - pad * 2);
+    const y = h - pad - (Math.max(0, v) / top) * (h - pad * 2);
     return `${x.toFixed(1)},${y.toFixed(1)}`;
   }).join(' ');
-  const baseY = h - pad - (baseMHz / max) * (h - pad * 2);
-  const lowY = h - pad - (baseMHz * 0.55 / max) * (h - pad * 2);
+  const guides = lines.map(l => {
+    const y = h - pad - (l.value / top) * (h - pad * 2);
+    return `<line x1="${pad}" y1="${y}" x2="${w - pad}" y2="${y}" class="${l.cls}"/>`;
+  }).join('');
   return `
     <svg viewBox="0 0 ${w} ${h}" class="spark" preserveAspectRatio="none">
-      <line x1="${pad}" y1="${baseY}" x2="${w - pad}" y2="${baseY}" class="spark-base"/>
-      <line x1="${pad}" y1="${lowY}" x2="${w - pad}" y2="${lowY}" class="spark-low"/>
+      ${guides}
       <polyline points="${pts}" class="spark-line"/>
     </svg>`;
+}
+
+function table(headers, rows, emptyText) {
+  if (!rows || !rows.length) return `<p class="hint">${esc(emptyText)}</p>`;
+  return `
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr>${headers.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead>
+        <tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>
+      </table>
+    </div>`;
+}
+
+function renderOverview(ui, r, a) {
+  const attribution = (a.attribution && a.attribution.length)
+    ? a.attribution.map((c, i) => {
+        const ct = causeText(state.lang, c.causeId);
+        return `
+          <div class="cause ${i === 0 ? 'cause-top' : ''}">
+            <div class="cause-head">
+              <span class="cause-rank">#${i + 1}</span>
+              <span class="cause-title">${esc(ct.title)}</span>
+              <span class="badge badge-${c.confidence}">${ui.confidence[c.confidence] || c.confidence}</span>
+            </div>
+            <p class="cause-desc">${esc(ct.desc)}</p>
+            <ul class="evidence">
+              ${c.evidence.map(ev => `<li>${esc(evidenceText(state.lang, ev))}</li>`).join('')}
+            </ul>
+          </div>`;
+      }).join('')
+    : (a.primaryRuleId === 'rule.cpu-freq-constrained' ? `<p class="hint">${ui.attributionEmpty}</p>` : '');
+
+  const findings = (a.findings || []).map(f => {
+    const ft = ruleText(state.lang, f.ruleId, f.params);
+    return `
+      <div class="finding">
+        <div class="finding-head">
+          <span class="sev sev-${f.severity}">${ui.findingSeverity[f.severity] || f.severity}</span>
+          <span class="finding-title">${esc(ft.title)}</span>
+        </div>
+        <p class="finding-desc">${esc(ft.desc)}</p>
+        <ul class="evidence">
+          ${(f.evidence || []).map(ev => `<li>${esc(evidenceText(state.lang, ev))}</li>`).join('')}
+        </ul>
+      </div>`;
+  }).join('');
+
+  const samples = r.samples || [];
+  const base = r.cpu.baseClockMHz;
+  const freqChart = sparkline(samples.map(s => s.effectiveClockMHz), {
+    max: Math.max(base, ...samples.map(s => s.effectiveClockMHz)),
+    lines: [{ value: base, cls: 'spark-base' }, { value: base * 0.55, cls: 'spark-low' }],
+  });
+  const miniCharts = `
+    <div class="mini-charts">
+      <div><div class="mini-title">${ui.charts.load}</div>${sparkline(samples.map(s => s.cpuLoadPercent), { max: 100 })}</div>
+      <div><div class="mini-title">${ui.charts.mem}</div>${sparkline(samples.map(s => s.memUsedPercent), { max: 100 })}</div>
+      <div><div class="mini-title">${ui.charts.disk}</div>${sparkline(samples.map(s => s.diskActivePercent), { max: 100 })}</div>
+    </div>`;
+
+  return `
+    ${attribution ? `<section class="panel"><div class="block-title">${ui.attribution}</div>${attribution}</section>` : ''}
+    <section class="panel">
+      <div class="block-title">${ui.samplingTitle}</div>
+      ${freqChart}
+      ${miniCharts}
+    </section>
+    <section class="panel">
+      <div class="block-title">${ui.findings}</div>
+      ${findings || `<p class="hint">${ruleText(state.lang, 'rule.no-major-issue', {}).desc}</p>`}
+    </section>
+    ${(r.collectorNotes && r.collectorNotes.length) ? `
+    <section class="panel notes">
+      <div class="block-title">${ui.collectorNotes}</div>
+      <ul>${r.collectorNotes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>
+    </section>` : ''}`;
+}
+
+function renderTab(ui, r, a) {
+  switch (state.tab) {
+    case 'overview':
+      return renderOverview(ui, r, a);
+    case 'processes':
+      return `<section class="panel">${table(
+        [ui.th.procName, ui.th.pid, ui.th.cpu, ui.th.mem],
+        (r.processes || []).map(p => [esc(p.name), p.pid, `${p.cpuPercent.toFixed(1)}%`, `${p.workingSetMB.toFixed(0)} MB`]),
+        ui.empty)}</section>`;
+    case 'startup': {
+      const items = table(
+        [ui.th.name, ui.th.command, ui.th.location, ui.th.reviewWorthy],
+        (r.startupItems || []).map(s => [
+          esc(s.name), `<span class="mono">${esc(s.command)}</span>`, esc(s.location),
+          s.reviewWorthy ? `<span class="badge badge-warn">${ui.yes}</span>` : '',
+        ]),
+        ui.empty);
+      const tasks = table(
+        [ui.th.name, ui.th.taskPath, ui.th.state],
+        (r.scheduledTasks || []).map(tk => [esc(tk.name), `<span class="mono">${esc(tk.path)}</span>`, esc(tk.state)]),
+        ui.empty);
+      return `<section class="panel">${items}</section>
+              <section class="panel"><div class="block-title">${ui.startupTasksTitle}</div>${tasks}</section>`;
+    }
+    case 'services':
+      return `<section class="panel">${table(
+        [ui.th.name, ui.th.displayName, ui.th.state, ui.th.startMode, ui.th.hint],
+        (r.vendorServices || []).map(s => [
+          esc(s.name), esc(s.displayName),
+          s.state === 'Running' ? `<span class="badge badge-ok">${esc(s.state)}</span>` : esc(s.state),
+          esc(s.startMode), `<span class="mono">${esc(s.vendorHint)}</span>`,
+        ]),
+        ui.empty)}</section>`;
+    case 'software':
+      return `<section class="panel">${table(
+        [ui.th.name, ui.th.version, ui.th.publisher, ui.th.category],
+        (r.installedApps || []).map(x => [
+          esc(x.name), esc(x.version), esc(x.publisher),
+          x.category ? `<span class="badge badge-warn">${ui.utilityCategories[x.category] || esc(x.category)}</span>` : '',
+        ]),
+        ui.empty)}</section>`;
+    case 'events':
+      return `<section class="panel">${table(
+        [ui.th.time, ui.th.level, ui.th.provider, ui.th.eventId, ui.th.message],
+        (r.systemEvents || []).map(e => [
+          esc(e.timeCreated),
+          `<span class="sev ${e.level === 'Warning' ? 'sev-warning' : 'sev-critical'}">${esc(e.level)}</span>`,
+          esc(e.provider), e.eventId, esc(e.message),
+        ]),
+        ui.empty)}</section>`;
+    default:
+      return '';
+  }
 }
 
 function render() {
@@ -123,41 +260,13 @@ function render() {
     const adminBadge = r.isAdmin
       ? `<span class="badge badge-ok">${ui.admin}</span>`
       : `<span class="badge badge-warn">${ui.notAdmin}</span>`;
-
-    const attribution = (a.attribution && a.attribution.length)
-      ? a.attribution.map((c, i) => {
-          const ct = causeText(state.lang, c.causeId);
-          return `
-            <div class="cause ${i === 0 ? 'cause-top' : ''}">
-              <div class="cause-head">
-                <span class="cause-rank">#${i + 1}</span>
-                <span class="cause-title">${esc(ct.title)}</span>
-                <span class="badge badge-${c.confidence}">${ui.confidence[c.confidence] || c.confidence}</span>
-              </div>
-              <p class="cause-desc">${esc(ct.desc)}</p>
-              <ul class="evidence">
-                ${c.evidence.map(ev => `<li>${esc(evidenceText(state.lang, ev))}</li>`).join('')}
-              </ul>
-            </div>`;
-        }).join('')
-      : (a.primaryRuleId === 'rule.cpu-freq-constrained' ? `<p class="hint">${ui.attributionEmpty}</p>` : '');
-
-    const findings = (a.findings || []).map(f => {
-      const ft = ruleText(state.lang, f.ruleId, f.params);
-      return `
-        <div class="finding">
-          <div class="finding-head">
-            <span class="sev sev-${f.severity}">${ui.findingSeverity[f.severity] || f.severity}</span>
-            <span class="finding-title">${esc(ft.title)}</span>
-          </div>
-          <p class="finding-desc">${esc(ft.desc)}</p>
-          <ul class="evidence">
-            ${(f.evidence || []).map(ev => `<li>${esc(evidenceText(state.lang, ev))}</li>`).join('')}
-          </ul>
-        </div>`;
-    }).join('');
-
     const s = r.sampling || {};
+
+    const tabBar = `
+      <nav class="tabbar">
+        ${TABS.map(tb => `<button class="tab ${state.tab === tb ? 'tab-active' : ''}" data-tab="${tb}">${ui.tabs[tb]}</button>`).join('')}
+      </nav>`;
+
     body = `
       <div class="layout">
         <aside class="panel side">
@@ -185,20 +294,8 @@ function render() {
           </div>
         </aside>
         <main class="workspace">
-          ${attribution ? `<section class="panel"><div class="block-title">${ui.attribution}</div>${attribution}</section>` : ''}
-          <section class="panel">
-            <div class="block-title">${ui.samplingTitle}</div>
-            ${sparkline(r.samples, r.cpu.baseClockMHz)}
-          </section>
-          <section class="panel">
-            <div class="block-title">${ui.findings}</div>
-            ${findings || `<p class="hint">${ruleText(state.lang, 'rule.no-major-issue', {}).desc}</p>`}
-          </section>
-          ${(r.collectorNotes && r.collectorNotes.length) ? `
-          <section class="panel notes">
-            <div class="block-title">${ui.collectorNotes}</div>
-            <ul>${r.collectorNotes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>
-          </section>` : ''}
+          ${tabBar}
+          ${renderTab(ui, r, a)}
         </main>
       </div>`;
   }
@@ -209,6 +306,10 @@ function render() {
   document.getElementById('open-log')?.addEventListener('click', () => OpenLogFolder());
   document.getElementById('scan-quick')?.addEventListener('click', () => startScan('quick'));
   document.getElementById('scan-deep')?.addEventListener('click', () => startScan('deep'));
+  document.querySelectorAll('.tab').forEach(el => el.addEventListener('click', () => {
+    state.tab = el.dataset.tab;
+    render();
+  }));
 }
 
 init();

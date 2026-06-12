@@ -6,6 +6,7 @@ package analyzer
 
 import (
 	"math"
+	"strings"
 
 	"diagnostic-studio/internal/collector"
 	"diagnostic-studio/internal/model"
@@ -17,6 +18,9 @@ const (
 	RuleMemoryPressure     = "rule.memory-pressure"
 	RuleDiskActiveHigh     = "rule.disk-active-high"
 	RuleSystemDriveLow     = "rule.system-drive-low-space"
+	RuleStartupLoad        = "rule.startup-load"
+	RuleVendorServices     = "rule.vendor-services"
+	RuleDuplicateUtilities = "rule.duplicate-utilities"
 	RuleNoMajorIssue       = "rule.no-major-issue"
 )
 
@@ -95,6 +99,73 @@ func Analyze(r *model.DiagnosticReport) {
 			})
 			a.CategoryScores["disk"] = 20
 			a.Score -= 20
+		}
+	}
+
+	// Startup + scheduled-task load: count review-worthy entries.
+	reviewStartup := 0
+	for _, s := range r.StartupItems {
+		if s.ReviewWorthy {
+			reviewStartup++
+		}
+	}
+	loadEntries := reviewStartup + len(r.ScheduledTasks)
+	if loadEntries >= 6 {
+		a.Findings = append(a.Findings, model.Finding{
+			RuleID:   RuleStartupLoad,
+			Severity: "warning",
+			Params:   map[string]any{"count": loadEntries, "startupCount": reviewStartup, "taskCount": len(r.ScheduledTasks)},
+			Evidence: []model.Evidence{
+				{EvidenceID: "ev.startup-count", Params: map[string]any{"count": reviewStartup}},
+				{EvidenceID: "ev.task-count", Params: map[string]any{"count": len(r.ScheduledTasks)}},
+			},
+		})
+		a.CategoryScores["startup"] = 15
+		a.Score -= 15
+	}
+
+	// Vendor service load: running Dell/Intel services beyond the power
+	// managers already handled by attribution.
+	runningVendor := 0
+	for _, s := range r.VendorServices {
+		if s.State == "Running" {
+			runningVendor++
+		}
+	}
+	if runningVendor >= 4 {
+		a.Findings = append(a.Findings, model.Finding{
+			RuleID:   RuleVendorServices,
+			Severity: "warning",
+			Params:   map[string]any{"count": runningVendor},
+			Evidence: []model.Evidence{
+				{EvidenceID: "ev.vendor-service-count", Params: map[string]any{"count": runningVendor}},
+			},
+		})
+		a.CategoryScores["vendor"] = 10
+		a.Score -= 10
+	}
+
+	// Duplicate utility software per category.
+	catCounts := map[string][]string{}
+	for _, app := range r.InstalledApps {
+		if app.Category != "" {
+			catCounts[app.Category] = append(catCounts[app.Category], app.Name)
+		}
+	}
+	for cat, names := range catCounts {
+		if len(names) >= 3 {
+			a.Findings = append(a.Findings, model.Finding{
+				RuleID:   RuleDuplicateUtilities,
+				Severity: "info",
+				Params:   map[string]any{"category": cat, "count": len(names)},
+				Evidence: []model.Evidence{
+					{EvidenceID: "ev.duplicate-apps", Params: map[string]any{"category": cat, "names": strings.Join(names, ", ")}},
+				},
+			})
+			if a.CategoryScores["software"] == 0 {
+				a.CategoryScores["software"] = 5
+				a.Score -= 5
+			}
 		}
 	}
 

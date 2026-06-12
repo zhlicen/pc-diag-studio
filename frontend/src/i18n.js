@@ -32,6 +32,20 @@ export const COPY = {
       minClock: '最低频率',
       memUsed: '内存占用',
       diskActive: '磁盘活动',
+      tabs: { overview: '概览', processes: '进程', startup: '启动项', services: '服务', software: '软件', events: '事件' },
+      charts: { load: 'CPU 负载 (%)', mem: '内存占用 (%)', disk: '磁盘活动 (%)' },
+      th: {
+        procName: '进程', pid: 'PID', cpu: 'CPU', mem: '内存',
+        name: '名称', command: '命令', location: '位置', reviewWorthy: '建议检查',
+        taskPath: '任务路径', state: '状态',
+        displayName: '显示名', startMode: '启动方式', hint: '分类',
+        version: '版本', publisher: '发布者', category: '类别',
+        time: '时间', level: '级别', provider: '来源', eventId: '事件 ID', message: '消息',
+      },
+      yes: '是',
+      empty: '无数据',
+      startupTasksTitle: '计划任务(非系统)',
+      utilityCategories: { browser: '浏览器', archive: '压缩工具', assistant: '助手/管家类' },
     },
     rules: {
       'rule.cpu-freq-constrained': {
@@ -54,6 +68,18 @@ export const COPY = {
         title: '系统盘剩余空间不足',
         desc: p => `${p.drive} 仅剩 ${p.freePercent}%(${p.freeGB} GB),会影响更新、页面文件与缓存。`,
       },
+      'rule.startup-load': {
+        title: '启动项与后台任务偏多',
+        desc: p => `检测到 ${p.startupCount} 个值得检查的启动项和 ${p.taskCount} 个第三方计划任务,共 ${p.count} 项。过多的更新器和助手会拖慢登录和日常响应。`,
+      },
+      'rule.vendor-services': {
+        title: 'Dell/Intel 后台服务偏多',
+        desc: p => `有 ${p.count} 个 Dell/Intel 服务正在运行。厂商支持、更新、遥测类服务会增加后台负载,部分还会影响电源调度行为。`,
+      },
+      'rule.duplicate-utilities': {
+        title: '同类工具软件重复安装',
+        desc: p => `检测到 ${p.count} 款同类软件(${p.category})。重复安装通常意味着重复的后台更新器和启动项。`,
+      },
       'rule.no-major-issue': {
         title: '未发现明显瓶颈',
         desc: () => '本次采样窗口内 CPU 频率、内存、磁盘均未触发规则。如果卡顿是间歇性的,请在卡顿发生时运行深度扫描。',
@@ -75,7 +101,12 @@ export const COPY = {
       'ev.active-scheme': p => `当前电源计划:${p.name}${p.isPowerSaver ? '(节能)' : ''}`,
       'ev.max-proc-state': p => `最大处理器状态被限制为 ${p.percent}%(AC ${p.acPercent}% / DC ${p.dcPercent}%)`,
       'ev.boost-disabled': p => `处理器睿频已被禁用(AC 模式 ${p.acMode} / DC 模式 ${p.dcMode})`,
-      'ev.throttle-events': p => `近 ${p.lookbackDays} 天有 ${p.count} 条「处理器速度被系统固件限制」事件,最近一次 ${p.lastTime}`,
+      'ev.throttle-events': p => `近 ${p.lookbackDays} 天有 ${p.count} 条「处理器速度被系统固件限制」事件,最近一次 ${p.lastTime}${p.recent ? '(48 小时内仍在发生)' : ''}`,
+      'ev.policy-consistency': p => `观测到的平均频率比 ${p.observedPercent}% 与策略上限 ${p.capPercent}% 吻合——该设置可直接解释降频`,
+      'ev.startup-count': p => `${p.count} 个值得检查的启动项`,
+      'ev.task-count': p => `${p.count} 个第三方计划任务`,
+      'ev.vendor-service-count': p => `${p.count} 个 Dell/Intel 服务正在运行`,
+      'ev.duplicate-apps': p => `同类软件:${p.names}`,
       'ev.on-battery': () => '扫描时正在使用电池供电',
       'ev.vendor-service-running': p => `${p.displayName}(${p.name})正在运行`,
       'ev.thermal-temp': p => `温度传感器读数最高 ${p.maxC}°C`,
@@ -118,6 +149,20 @@ export const COPY = {
       minClock: 'Min Clock',
       memUsed: 'Memory',
       diskActive: 'Disk Active',
+      tabs: { overview: 'Overview', processes: 'Processes', startup: 'Startup', services: 'Services', software: 'Software', events: 'Events' },
+      charts: { load: 'CPU Load (%)', mem: 'Memory Used (%)', disk: 'Disk Active (%)' },
+      th: {
+        procName: 'Process', pid: 'PID', cpu: 'CPU', mem: 'Memory',
+        name: 'Name', command: 'Command', location: 'Location', reviewWorthy: 'Review',
+        taskPath: 'Task Path', state: 'State',
+        displayName: 'Display Name', startMode: 'Start Mode', hint: 'Category',
+        version: 'Version', publisher: 'Publisher', category: 'Category',
+        time: 'Time', level: 'Level', provider: 'Provider', eventId: 'Event ID', message: 'Message',
+      },
+      yes: 'Yes',
+      empty: 'No data',
+      startupTasksTitle: 'Scheduled Tasks (non-system)',
+      utilityCategories: { browser: 'Browser', archive: 'Archiver', assistant: 'Assistant/Manager' },
     },
     rules: {
       'rule.cpu-freq-constrained': {
@@ -140,6 +185,18 @@ export const COPY = {
         title: 'System Drive Low on Space',
         desc: p => `${p.drive} has only ${p.freePercent}% (${p.freeGB} GB) free, affecting updates, paging, and caches.`,
       },
+      'rule.startup-load': {
+        title: 'Heavy Startup and Background Task Load',
+        desc: p => `Found ${p.startupCount} review-worthy startup entries and ${p.taskCount} third-party scheduled tasks (${p.count} total). Updaters and assistants slow login and day-to-day responsiveness.`,
+      },
+      'rule.vendor-services': {
+        title: 'Many Dell/Intel Background Services',
+        desc: p => `${p.count} Dell/Intel services are running. Vendor support, update, and telemetry services add background load; some influence power scheduling.`,
+      },
+      'rule.duplicate-utilities': {
+        title: 'Duplicate Utility Software',
+        desc: p => `${p.count} apps of the same kind (${p.category}) are installed. Duplicates usually mean duplicate background updaters and startup entries.`,
+      },
       'rule.no-major-issue': {
         title: 'No Major Bottleneck Detected',
         desc: () => 'CPU frequency, memory, and disk stayed within normal ranges in this sampling window. If the slowdown is intermittent, run the deep scan while it is happening.',
@@ -161,7 +218,12 @@ export const COPY = {
       'ev.active-scheme': p => `Active power plan: ${p.name}${p.isPowerSaver ? ' (power saver)' : ''}`,
       'ev.max-proc-state': p => `Maximum processor state capped at ${p.percent}% (AC ${p.acPercent}% / DC ${p.dcPercent}%)`,
       'ev.boost-disabled': p => `Processor boost disabled (AC mode ${p.acMode} / DC mode ${p.dcMode})`,
-      'ev.throttle-events': p => `${p.count} "processor speed limited by system firmware" events in the last ${p.lookbackDays} days, most recent ${p.lastTime}`,
+      'ev.throttle-events': p => `${p.count} "processor speed limited by system firmware" events in the last ${p.lookbackDays} days, most recent ${p.lastTime}${p.recent ? ' (still occurring within 48h)' : ''}`,
+      'ev.policy-consistency': p => `Observed average frequency ratio ${p.observedPercent}% matches the policy cap of ${p.capPercent}% — the setting directly explains the downclocking`,
+      'ev.startup-count': p => `${p.count} review-worthy startup entries`,
+      'ev.task-count': p => `${p.count} third-party scheduled tasks`,
+      'ev.vendor-service-count': p => `${p.count} Dell/Intel services running`,
+      'ev.duplicate-apps': p => `Same-category apps: ${p.names}`,
       'ev.on-battery': () => 'Running on battery during the scan',
       'ev.vendor-service-running': p => `${p.displayName} (${p.name}) is running`,
       'ev.thermal-temp': p => `Thermal zone peak ${p.maxC}°C`,
@@ -183,7 +245,11 @@ export function t(lang) {
 export function ruleText(lang, ruleId, params) {
   const r = t(lang).rules[ruleId];
   if (!r) return { title: ruleId, desc: JSON.stringify(params) };
-  return { title: r.title, desc: r.desc(params || {}) };
+  let p = params || {};
+  // Localize category codes embedded in params (duplicate-utilities rule).
+  const cats = t(lang).ui.utilityCategories;
+  if (p.category && cats && cats[p.category]) p = { ...p, category: cats[p.category] };
+  return { title: r.title, desc: r.desc(p) };
 }
 
 export function causeText(lang, causeId) {

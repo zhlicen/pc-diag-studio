@@ -26,8 +26,53 @@ type DiagnosticReport struct {
 	VendorServices []ServiceInfo    `json:"vendorServices"`
 	Samples        []Sample         `json:"samples"`
 	Sampling       SamplingSummary  `json:"sampling"`
+	Processes      []ProcessInfo    `json:"processes"`
+	StartupItems   []StartupItem    `json:"startupItems"`
+	ScheduledTasks []ScheduledTask  `json:"scheduledTasks"`
+	InstalledApps  []InstalledApp   `json:"installedApps"`
+	SystemEvents   []EventInfo      `json:"systemEvents"`
 	Analysis       AnalysisResult   `json:"analysis"`
 	CollectorNotes []string         `json:"collectorNotes"` // non-fatal collection failures, for honesty in the report
+}
+
+type ProcessInfo struct {
+	Name         string  `json:"name"`
+	PID          int     `json:"pid"`
+	CPUPercent   float64 `json:"cpuPercent"` // normalized to all logical processors
+	WorkingSetMB float64 `json:"workingSetMB"`
+}
+
+type StartupItem struct {
+	Name     string `json:"name"`
+	Command  string `json:"command"`
+	Location string `json:"location"`
+	User     string `json:"user"`
+	// ReviewWorthy marks non-Windows entries that contribute to the
+	// startup-load rule.
+	ReviewWorthy bool `json:"reviewWorthy"`
+}
+
+type ScheduledTask struct {
+	Name  string `json:"name"`
+	Path  string `json:"path"`
+	State string `json:"state"`
+}
+
+type InstalledApp struct {
+	Name      string `json:"name"`
+	Version   string `json:"version"`
+	Publisher string `json:"publisher"`
+	// Category is filled when the app matches a duplicate-utility category
+	// (browser / archive / assistant); empty otherwise.
+	Category string `json:"category"`
+}
+
+type EventInfo struct {
+	TimeCreated string `json:"timeCreated"`
+	Provider    string `json:"provider"`
+	EventID     int    `json:"eventId"`
+	Level       string `json:"level"` // Critical / Error / Warning
+	Message     string `json:"message"`
 }
 
 type ComputerInfo struct {

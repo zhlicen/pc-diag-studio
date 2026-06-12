@@ -190,6 +190,98 @@ export namespace model {
 	        this.osBuild = source["osBuild"];
 	    }
 	}
+	export class EventInfo {
+	    timeCreated: string;
+	    provider: string;
+	    eventId: number;
+	    level: string;
+	    message: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new EventInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.timeCreated = source["timeCreated"];
+	        this.provider = source["provider"];
+	        this.eventId = source["eventId"];
+	        this.level = source["level"];
+	        this.message = source["message"];
+	    }
+	}
+	export class InstalledApp {
+	    name: string;
+	    version: string;
+	    publisher: string;
+	    category: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new InstalledApp(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.version = source["version"];
+	        this.publisher = source["publisher"];
+	        this.category = source["category"];
+	    }
+	}
+	export class ScheduledTask {
+	    name: string;
+	    path: string;
+	    state: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ScheduledTask(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.path = source["path"];
+	        this.state = source["state"];
+	    }
+	}
+	export class StartupItem {
+	    name: string;
+	    command: string;
+	    location: string;
+	    user: string;
+	    reviewWorthy: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new StartupItem(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.command = source["command"];
+	        this.location = source["location"];
+	        this.user = source["user"];
+	        this.reviewWorthy = source["reviewWorthy"];
+	    }
+	}
+	export class ProcessInfo {
+	    name: string;
+	    pid: number;
+	    cpuPercent: number;
+	    workingSetMB: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new ProcessInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.pid = source["pid"];
+	        this.cpuPercent = source["cpuPercent"];
+	        this.workingSetMB = source["workingSetMB"];
+	    }
+	}
 	export class SamplingSummary {
 	    sampleCount: number;
 	    intervalSec: number;
@@ -373,6 +465,11 @@ export namespace model {
 	    vendorServices: ServiceInfo[];
 	    samples: Sample[];
 	    sampling: SamplingSummary;
+	    processes: ProcessInfo[];
+	    startupItems: StartupItem[];
+	    scheduledTasks: ScheduledTask[];
+	    installedApps: InstalledApp[];
+	    systemEvents: EventInfo[];
 	    analysis: AnalysisResult;
 	    collectorNotes: string[];
 	
@@ -396,6 +493,11 @@ export namespace model {
 	        this.vendorServices = this.convertValues(source["vendorServices"], ServiceInfo);
 	        this.samples = this.convertValues(source["samples"], Sample);
 	        this.sampling = this.convertValues(source["sampling"], SamplingSummary);
+	        this.processes = this.convertValues(source["processes"], ProcessInfo);
+	        this.startupItems = this.convertValues(source["startupItems"], StartupItem);
+	        this.scheduledTasks = this.convertValues(source["scheduledTasks"], ScheduledTask);
+	        this.installedApps = this.convertValues(source["installedApps"], InstalledApp);
+	        this.systemEvents = this.convertValues(source["systemEvents"], EventInfo);
 	        this.analysis = this.convertValues(source["analysis"], AnalysisResult);
 	        this.collectorNotes = source["collectorNotes"];
 	    }
@@ -418,6 +520,11 @@ export namespace model {
 		    return a;
 		}
 	}
+	
+	
+	
+	
+	
 	
 	
 	

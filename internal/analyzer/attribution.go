@@ -1,6 +1,8 @@
 package analyzer
 
 import (
+	"time"
+
 	"diagnostic-studio/internal/collector"
 	"diagnostic-studio/internal/model"
 )
@@ -90,6 +92,16 @@ func attributePowerPolicy(r *model.DiagnosticReport) *model.AttributionCandidate
 		ev = append(ev, model.Evidence{EvidenceID: "ev.max-proc-state", Params: map[string]any{
 			"side": side, "percent": maxState, "acPercent": p.ACMaxProcessorState, "dcPercent": p.DCMaxProcessorState,
 		}})
+		// Deterministic consistency: when the observed average ratio lands at
+		// or below the configured cap (plus ramp-up slack), the cap directly
+		// explains the measurement — that outranks historical evidence.
+		observed := r.Sampling.AvgFreqRatioPercent
+		if observed > 0 && observed <= float64(maxState)+20 {
+			score += 30
+			ev = append(ev, model.Evidence{EvidenceID: "ev.policy-consistency", Params: map[string]any{
+				"capPercent": maxState, "observedPercent": round1(observed),
+			}})
+		}
 	}
 
 	boost := p.ACBoostMode
@@ -115,8 +127,21 @@ func attributeFirmwareAdapter(r *model.DiagnosticReport) *model.AttributionCandi
 		} else {
 			score += 30
 		}
+		// Recency weighting: firmware limiting observed in the last 48h is a
+		// live signal; only-old events suggest an already-resolved episode.
+		last := r.ThrottleEvents[0].TimeCreated // newest first from Get-WinEvent
+		recent := false
+		if t, err := time.ParseInLocation("2006-01-02 15:04:05", last, time.Local); err == nil {
+			age := time.Since(t)
+			if age <= 48*time.Hour {
+				score += 20
+				recent = true
+			} else if age > 7*24*time.Hour {
+				score -= 25
+			}
+		}
 		ev = append(ev, model.Evidence{EvidenceID: "ev.throttle-events", Params: map[string]any{
-			"count": n, "lastTime": r.ThrottleEvents[0].TimeCreated, "lookbackDays": 14,
+			"count": n, "lastTime": last, "lookbackDays": 14, "recent": recent,
 		}})
 	}
 	if !r.Power.OnAC && score > 0 {
