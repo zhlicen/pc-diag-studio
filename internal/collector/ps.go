@@ -11,6 +11,12 @@ import (
 
 const psTimeout = 60 * time.Second
 
+// PowerShell startup is relatively heavy and can fail with CRT R6016 ("not
+// enough space for thread data") when many instances launch at once during a
+// scan. Keep collector snippets serialized; the sampler still runs while these
+// one-shot collectors wait their turn.
+var psSlots = make(chan struct{}, 1)
+
 // runPS executes a PowerShell snippet without a visible window and returns
 // stdout. Scripts must emit locale-independent output (JSON, GUIDs, hex);
 // localized text is only acceptable for display-only fields.
@@ -19,6 +25,9 @@ const psTimeout = 60 * time.Second
 // Chinese Windows), so the console encoding is forced to UTF-8 to match the
 // UTF-8 parsing on the Go side.
 func runPS(script string) (string, error) {
+	psSlots <- struct{}{}
+	defer func() { <-psSlots }()
+
 	script = "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; " + script
 	cmd := exec.Command("powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", script)
 	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true, CreationFlags: 0x08000000} // CREATE_NO_WINDOW

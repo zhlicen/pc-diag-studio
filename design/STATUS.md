@@ -188,3 +188,6 @@ Remaining M5 acceptance:
 - PowerShell output was once mojibake on Chinese Windows — every PS
   invocation must prefix `[Console]::OutputEncoding=UTF8` (already in
   ps.go/optimizer runShell; keep it).
+- PowerShell collector snippets are serialized through `internal/collector/ps.go`;
+  launching many `powershell.exe` instances at once can trigger a Visual C++
+  Runtime R6016 dialog during scans.
