@@ -196,7 +196,13 @@ func attributeThermal(r *model.DiagnosticReport) *model.AttributionCandidate {
 	score := 0
 	var ev []model.Evidence
 
-	if t := r.Power.ThermalZoneMaxC; t >= 85 {
+	if t := maxSensorTemperature(r.Sensors); t >= 85 {
+		score += 60
+		ev = append(ev, model.Evidence{EvidenceID: "ev.thermal-temp", Params: map[string]any{"maxC": round1(t)}})
+	} else if t >= 75 {
+		score += 40
+		ev = append(ev, model.Evidence{EvidenceID: "ev.thermal-temp", Params: map[string]any{"maxC": round1(t)}})
+	} else if t := r.Power.ThermalZoneMaxC; t >= 85 {
 		score += 50
 		ev = append(ev, model.Evidence{EvidenceID: "ev.thermal-temp", Params: map[string]any{"maxC": round1(t)}})
 	} else if t >= 75 {
@@ -219,6 +225,22 @@ func attributeThermal(r *model.DiagnosticReport) *model.AttributionCandidate {
 		}})
 	}
 	return candidate(CauseThermal, score, ev)
+}
+
+func maxSensorTemperature(s model.SensorSnapshot) float64 {
+	maxC := -1.0
+	if s.Status != "ok" {
+		return maxC
+	}
+	for _, r := range s.Readings {
+		if r.Kind != "temperature" {
+			continue
+		}
+		if r.Value > maxC && r.Value > 0 && r.Value < 130 {
+			maxC = r.Value
+		}
+	}
+	return maxC
 }
 
 func attributeBattery(r *model.DiagnosticReport) *model.AttributionCandidate {

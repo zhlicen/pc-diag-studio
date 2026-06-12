@@ -9,4 +9,6 @@ log/
 # local smoke-test artifacts
 colltest.exe
 colltest-*.json
+providers/*.exe
+sensors/*.exe
 .claude/

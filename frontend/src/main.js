@@ -382,6 +382,14 @@ function table(headers, rows, emptyText, refs) {
 }
 
 function renderOverview(ui, r, a) {
+  const sensorRows = (r.sensors?.status === 'ok' && r.sensors.readings?.length)
+    ? r.sensors.readings.map(reading => `
+      <div class="sensor-pill">
+        <span class="sensor-name">${esc(reading.name)}</span>
+        <strong>${Number(reading.value).toFixed(reading.kind === 'fan' ? 0 : 1)}</strong>
+        <span class="sensor-unit">${esc(reading.unit)}</span>
+      </div>`).join('')
+    : '';
   const attribution = (a.attribution && a.attribution.length)
     ? a.attribution.map((c, i) => {
         const ct = causeText(state.lang, c.causeId);
@@ -434,6 +442,12 @@ function renderOverview(ui, r, a) {
       ${freqChart}
       ${miniCharts}
     </section>
+    ${sensorRows ? `
+    <section class="panel">
+      <div class="block-title">${ui.advancedSensors}</div>
+      <div class="sensor-grid">${sensorRows}</div>
+      <p class="hint">${esc(r.sensors.provider || '')}</p>
+    </section>` : ''}
     <section class="panel">
       <div class="block-title">${ui.findings}</div>
       ${findings || `<p class="hint">${ruleText(state.lang, 'rule.no-major-issue', {}).desc}</p>`}

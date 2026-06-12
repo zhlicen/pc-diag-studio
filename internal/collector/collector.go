@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"diagnostic-studio/internal/model"
+	"diagnostic-studio/internal/sensors"
 )
 
 // CollectFor runs a full collection with the given sampling shape and returns
@@ -44,9 +45,10 @@ func CollectFor(ctx context.Context, mode model.ScanMode, durationSec, intervalS
 	var tasks []model.ScheduledTask
 	var apps []model.InstalledApp
 	var sysEvents []model.EventInfo
-	noteSets := make([][]string, 8)
+	var sensorSnap model.SensorSnapshot
+	noteSets := make([][]string, 9)
 
-	wg.Add(9)
+	wg.Add(10)
 	go func() { defer wg.Done(); batteryStart, batteryStartOK = readBatteryStatus(0) }()
 	go func() { defer wg.Done(); power = collectPower(&noteSets[0]) }()
 	go func() { defer wg.Done(); events = collectThrottleEvents(&noteSets[1]) }()
@@ -56,6 +58,13 @@ func CollectFor(ctx context.Context, mode model.ScanMode, durationSec, intervalS
 	go func() { defer wg.Done(); tasks = collectScheduledTasks(&noteSets[5]) }()
 	go func() { defer wg.Done(); apps = collectInstalledApps(&noteSets[6]) }()
 	go func() { defer wg.Done(); sysEvents = collectSystemEvents(&noteSets[7]) }()
+	go func() {
+		defer wg.Done()
+		sensorSnap = sensors.Collect(ctx)
+		if sensorSnap.Status != "ok" && sensorSnap.Detail != "" {
+			noteSets[8] = append(noteSets[8], sensorSnap.Detail)
+		}
+	}()
 
 	totalSamples := durationSec / intervalSec
 	report.Samples = sampleSeries(ctx, totalSamples, intervalSec, cpu.BaseClockMHz, mem.TotalMB, progress, notes)
@@ -74,6 +83,7 @@ func CollectFor(ctx context.Context, mode model.ScanMode, durationSec, intervalS
 	}
 	report.PowerDelivery = summarizePowerDelivery(readings)
 	report.Power = power
+	report.Sensors = sensorSnap
 	report.ThrottleEvents = events
 	report.VendorServices = services
 	report.Processes = procs

@@ -103,17 +103,30 @@ Scope:
 - Add an optional sensor-provider layer under `internal/sensors/` with a
   normalized JSON model for temperature, fan RPM, CPU/package power, voltage,
   PROCHOT/throttle flags, and adapter/power-delivery hints.
+- Provider contract: the main app discovers `PC_DIAG_SENSOR_PROVIDER` first,
+  then `providers\sensor-provider.exe` or `sensors\sensor-provider.exe` next
+  to the app/current working directory. The helper prints JSON to stdout:
+  `{ "provider": "name", "capturedAt": "...", "readings": [
+  { "kind": "temperature|power|voltage|fan|throttle|other",
+  "name": "CPU Package", "unit": "C", "value": 82.4, "source": "hwinfo" }
+  ] }`.
 - HWiNFO provider: detect a user-supplied portable HWiNFO path and read sensor
   data through Shared Memory when the user enables Sensors + Shared Memory.
   Treat licensing/edition limits as an implementation-time check; do not ship
   or silently install HWiNFO.
+- Current implementation: `cmd/hwinfo-provider` reads
+  `Global\HWiNFO_SENS_SM2`, respects the HWiNFO mutex when available, and
+  emits summarized key readings rather than every raw per-core value. The
+  helper is optional and must be built/copied as
+  `providers\sensor-provider.exe` for packaged GUI testing.
 - LibreHardwareMonitor provider: prototype a small helper process that uses
   `LibreHardwareMonitorLib` and emits normalized JSON. The helper must be
   optional, read-only, and explicit about admin/driver requirements.
-- Extend the diagnostic report with an optional `advancedSensors` block and
+- Extend the diagnostic report with an optional `sensors` block and
   include only summarized, redacted values in AI summaries.
-- UI: add an "Advanced Sensors" settings/status area showing provider state,
-  last reading time, unavailable reasons, and the exact metrics discovered.
+- UI: add a compact "Advanced Sensors" summary showing provider state, last
+  reading time, unavailable reasons, and the highest-signal metrics. Avoid raw
+  HWiNFO dumps; keep detail views secondary.
 - Analyzer: upgrade thermal/power attribution when high-quality sensor data is
   present; never downgrade the existing OS-visible evidence path when sensors
   are absent.
@@ -125,6 +138,8 @@ Acceptance:
 - With HWiNFO running, a scan captures at least CPU package temperature,
   package power, and any available fan RPM/voltage readings on a supported
   machine.
+- HWiNFO raw readings are reduced to a readable summary; the overview must not
+  fill the page with repeated Core VID / per-core temperature rows.
 - With the LibreHardwareMonitor helper enabled, the app captures the same
   normalized sensor categories where the machine exposes them.
 - Sensor readings are read-only, logged as evidence, and never used to execute

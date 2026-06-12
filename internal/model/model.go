@@ -37,6 +37,7 @@ type DiagnosticReport struct {
 	Disks          []DiskInfo      `json:"disks"`
 	Power          PowerStateInfo  `json:"power"`
 	PowerDelivery  PowerDelivery   `json:"powerDelivery"`
+	Sensors        SensorSnapshot  `json:"sensors"`
 	ThrottleEvents []ThrottleEvent `json:"throttleEvents"`
 	VendorServices []ServiceInfo   `json:"vendorServices"`
 	Samples        []Sample        `json:"samples"`
@@ -158,6 +159,24 @@ type BatteryReading struct {
 	Discharging     bool `json:"discharging"`
 	ChargeRateMW    int  `json:"chargeRateMW"`
 	DischargeRateMW int  `json:"dischargeRateMW"`
+}
+
+// SensorSnapshot is an optional read-only advanced sensor provider result.
+// Providers live outside the green main executable and emit normalized JSON.
+type SensorSnapshot struct {
+	Provider   string          `json:"provider"`
+	Status     string          `json:"status"` // ok / absent / failed
+	CapturedAt string          `json:"capturedAt"`
+	Readings   []SensorReading `json:"readings"`
+	Detail     string          `json:"detail"`
+}
+
+type SensorReading struct {
+	Kind   string  `json:"kind"` // temperature / power / voltage / fan / throttle / other
+	Name   string  `json:"name"`
+	Unit   string  `json:"unit"`
+	Value  float64 `json:"value"`
+	Source string  `json:"source"`
 }
 
 type ThrottleEvent struct {

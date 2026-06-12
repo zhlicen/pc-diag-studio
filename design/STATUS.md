@@ -25,6 +25,7 @@
 | M3 actions + fail-closed rollback | done | done | done (user ran app; encoding/style fixes verified) | done | done |
 | M4 symptom-driven diagnosis (see below) | done | done (`go build` + `wails build`) | GUI/actions partially checked; rollback manual tests pending | done | done |
 | M5 AI + release polish | done | done (`npm run build` + `go test` + `wails build`) | AI endpoint verified; second-PC smoke pending | done (`v0.5.1`) | done |
+| M6 advanced sensor provider bridge | partial | done (`go test` + `npm run build` + `wails build`) | HWiNFO Shared Memory observed by owner; GUI needs more polish | pending | pending |
 
 ## Release checkpoint
 
@@ -118,6 +119,9 @@ internal/collector/             ps.go (UTF-8 PowerShell exec), pdh_windows.go
                                 intel match), startup.go (+StartupApproved state),
                                 processes.go, apps.go, sysevents.go, sampler.go,
                                 collector.go (orchestration, parallel one-shots)
+internal/sensors/               optional external provider bridge; discovers
+                                PC_DIAG_SENSOR_PROVIDER or provider exe beside
+                                the app and normalizes sensor JSON
 internal/analyzer/              analyzer.go (rules, scoring, symptom steering,
                                 lag markers, busy-vendor cross-reference),
                                 attribution.go (5-cause ranked attribution),
@@ -128,6 +132,8 @@ internal/optimizer/             optimizer.go (power/temp), service.go +
                                 startup.go (fail-closed disable + rollback),
                                 logs.go (rollback-records.json, optimization-log.json)
 cmd/colltest/                   CLI smoke harness (collect+analyze, no GUI)
+cmd/hwinfo-provider/            optional helper: reads HWiNFO Shared Memory
+                                and emits summarized sensor JSON
 frontend/src/i18n.js            zh/en copy tables keyed by rule/evidence/cause/
                                 action/kb IDs — the ONLY place display text lives
 frontend/src/main.js            rendering, tabs, modals, evidence links
@@ -169,15 +175,58 @@ Remaining M5 acceptance:
 - Copy the built folder to a second Windows 11 machine and smoke-test launch,
   scan, log path, and AI key portability behavior (key should not decrypt there).
 
+## M6 status
+
+Implemented but not yet release-sealed:
+
+- Added optional provider bridge under `internal/sensors`.
+- Main app discovers `PC_DIAG_SENSOR_PROVIDER`, then
+  `providers\sensor-provider.exe` / `sensors\sensor-provider.exe` beside the
+  executable or current working directory.
+- Added normalized report field `sensors` with provider status, capture time,
+  detail, and readings.
+- Added `cmd/hwinfo-provider`, a read-only HWiNFO Shared Memory helper. It
+  emits `status: absent` when HWiNFO Shared Memory is unavailable instead of
+  failing the scan.
+- HWiNFO helper summarizes noisy raw readings down to key metrics:
+  CPU package/core temperature, CPU package/core power, CPU voltage, and fan
+  speed where available.
+- Overview UI shows a compact Advanced Sensors section only when sensor data is
+  present.
+- Analyzer thermal attribution uses provider temperature before falling back to
+  ACPI thermal zone / load-pattern heuristics.
+- AI redacted summaries include only summarized sensor values.
+
+Completed M6 checks:
+
+- Owner enabled HWiNFO Sensors + Shared Memory and confirmed the provider path
+  can read data.
+- `go test ./...`
+- `npm run build`
+- `wails build`
+- `go run ./cmd/colltest -duration 10 -interval 1`
+- `git diff --check`
+
+Remaining M6 acceptance:
+
+- GUI polish: turn the Advanced Sensors block into a deliberate diagnostic
+  summary instead of a raw sensor dump (initial compaction is in place, but
+  owner correctly flagged the first UI as half-finished).
+- Validate sensor labels and units across at least one Intel and one AMD/other
+  laptop, because HWiNFO labels vary by platform.
+- Decide packaging: whether release zips should include
+  `providers\sensor-provider.exe` by default or document it as an optional
+  helper.
+- LibreHardwareMonitor helper remains deferred.
+
 ## Future expectations
 
 - **Post-v0.5.0 polish**: second-machine smoke test, broader localization copy
   review, and optional release packaging/signing decisions. See
   [product-plan.md](product-plan.md) and [optimization-and-safety.md](optimization-and-safety.md).
-- **M6 planned**: optional advanced sensor providers. Keep the app green by
-  default, then support user-supplied HWiNFO Shared Memory and/or a
-  LibreHardwareMonitor helper for CPU package temperature, package power,
-  voltage, fan RPM, and PROCHOT/throttle signals where available.
+- **M6 in progress**: optional advanced sensor providers. HWiNFO bridge is
+  functional but still needs UI/product polish and broader machine validation
+  before release sealing.
 - Later deferred ideas: Lenovo/HP vendor packs, fleet report
   aggregation/compare, per-disk latency counters, DPC/interrupt signals.
 

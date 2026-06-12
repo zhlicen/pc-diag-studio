@@ -41,6 +41,7 @@ func RedactedSummary(r model.DiagnosticReport) (string, error) {
 		"disks":          summarizeDisks(r.Disks),
 		"power":          r.Power,
 		"powerDelivery":  summarizePowerDelivery(r.PowerDelivery),
+		"sensors":        summarizeSensors(r.Sensors),
 		"sampling":       r.Sampling,
 		"analysis":       r.Analysis,
 		"processes":      summarizeProcesses(r.Processes),
@@ -78,6 +79,24 @@ func summarizePowerDelivery(pd model.PowerDelivery) map[string]any {
 		"maxDischargeMW":  pd.MaxDischargeMW,
 		"readingCount":    len(pd.Readings),
 	}
+}
+
+func summarizeSensors(s model.SensorSnapshot) map[string]any {
+	out := map[string]any{"status": s.Status, "provider": s.Provider}
+	if s.Status != "ok" {
+		return out
+	}
+	readings := make([]map[string]any, 0, len(s.Readings))
+	for _, r := range s.Readings {
+		readings = append(readings, map[string]any{
+			"kind":  r.Kind,
+			"name":  r.Name,
+			"unit":  r.Unit,
+			"value": r.Value,
+		})
+	}
+	out["readings"] = readings
+	return out
 }
 
 func summarizeProcesses(items []model.ProcessInfo) []model.ProcessInfo {

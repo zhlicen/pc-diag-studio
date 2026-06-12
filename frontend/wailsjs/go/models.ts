@@ -1,14 +1,14 @@
 export namespace main {
-	
+
 	export class AppStatus {
 	    version: string;
 	    isAdmin: boolean;
 	    logDir: string;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new AppStatus(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.version = source["version"];
@@ -69,11 +69,11 @@ export namespace model {
 	    detail: string;
 	    params: Record<string, any>;
 	    time: string;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new ActionResult(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.actionId = source["actionId"];
@@ -89,11 +89,11 @@ export namespace model {
 	    params: Record<string, any>;
 	    recommendOnly: boolean;
 	    sourceRuleId: string;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new OptimizationAction(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.actionId = source["actionId"];
@@ -108,11 +108,11 @@ export namespace model {
 	    confidence: string;
 	    score: number;
 	    evidence: Evidence[];
-	
+
 	    static createFrom(source: any = {}) {
 	        return new AttributionCandidate(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.causeId = source["causeId"];
@@ -120,7 +120,7 @@ export namespace model {
 	        this.score = source["score"];
 	        this.evidence = this.convertValues(source["evidence"], Evidence);
 	    }
-	
+
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
 		    if (!a) {
 		        return a;
@@ -142,11 +142,11 @@ export namespace model {
 	export class Evidence {
 	    evidenceId: string;
 	    params: Record<string, any>;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new Evidence(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.evidenceId = source["evidenceId"];
@@ -158,11 +158,11 @@ export namespace model {
 	    severity: string;
 	    params: Record<string, any>;
 	    evidence: Evidence[];
-	
+
 	    static createFrom(source: any = {}) {
 	        return new Finding(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.ruleId = source["ruleId"];
@@ -170,7 +170,7 @@ export namespace model {
 	        this.params = source["params"];
 	        this.evidence = this.convertValues(source["evidence"], Evidence);
 	    }
-	
+
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
 		    if (!a) {
 		        return a;
@@ -198,11 +198,11 @@ export namespace model {
 	    attribution: AttributionCandidate[];
 	    categoryScores: Record<string, number>;
 	    actions: OptimizationAction[];
-	
+
 	    static createFrom(source: any = {}) {
 	        return new AnalysisResult(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.score = source["score"];
@@ -214,7 +214,7 @@ export namespace model {
 	        this.categoryScores = source["categoryScores"];
 	        this.actions = this.convertValues(source["actions"], OptimizationAction);
 	    }
-	
+
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
 		    if (!a) {
 		        return a;
@@ -233,7 +233,7 @@ export namespace model {
 		    return a;
 		}
 	}
-	
+
 	export class BatteryReading {
 	    atSec: number;
 	    powerOnline: boolean;
@@ -241,11 +241,11 @@ export namespace model {
 	    discharging: boolean;
 	    chargeRateMW: number;
 	    dischargeRateMW: number;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new BatteryReading(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.atSec = source["atSec"];
@@ -261,11 +261,11 @@ export namespace model {
 	    baseClockMHz: number;
 	    cores: number;
 	    logicalProcessors: number;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new CPUInfo(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.name = source["name"];
@@ -281,11 +281,11 @@ export namespace model {
 	    osName: string;
 	    osVersion: string;
 	    osBuild: string;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new ComputerInfo(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.computerName = source["computerName"];
@@ -302,11 +302,11 @@ export namespace model {
 	    eventId: number;
 	    level: string;
 	    message: string;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new EventInfo(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.timeCreated = source["timeCreated"];
@@ -321,11 +321,11 @@ export namespace model {
 	    version: string;
 	    publisher: string;
 	    category: string;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new InstalledApp(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.name = source["name"];
@@ -338,11 +338,11 @@ export namespace model {
 	    name: string;
 	    path: string;
 	    state: string;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new ScheduledTask(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.name = source["name"];
@@ -358,11 +358,11 @@ export namespace model {
 	    reviewWorthy: boolean;
 	    disabled: boolean;
 	    canToggle: boolean;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new StartupItem(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.name = source["name"];
@@ -379,11 +379,11 @@ export namespace model {
 	    pid: number;
 	    cpuPercent: number;
 	    workingSetMB: number;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new ProcessInfo(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.name = source["name"];
@@ -406,11 +406,11 @@ export namespace model {
 	    avgCommitPercent: number;
 	    avgDiskActivePercent: number;
 	    avgDiskQueue: number;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new SamplingSummary(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.sampleCount = source["sampleCount"];
@@ -437,11 +437,11 @@ export namespace model {
 	    commitPercent: number;
 	    diskActivePercent: number;
 	    diskQueue: number;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new Sample(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.offsetSec = source["offsetSec"];
@@ -461,11 +461,11 @@ export namespace model {
 	    startMode: string;
 	    vendorHint: string;
 	    pathName: string;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new ServiceInfo(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.name = source["name"];
@@ -480,11 +480,11 @@ export namespace model {
 	    timeCreated: string;
 	    eventId: number;
 	    message: string;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new ThrottleEvent(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.timeCreated = source["timeCreated"];
@@ -492,22 +492,80 @@ export namespace model {
 	        this.message = source["message"];
 	    }
 	}
+	export class SensorReading {
+	    kind: string;
+	    name: string;
+	    unit: string;
+	    value: number;
+	    source: string;
+
+	    static createFrom(source: any = {}) {
+	        return new SensorReading(source);
+	    }
+
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.kind = source["kind"];
+	        this.name = source["name"];
+	        this.unit = source["unit"];
+	        this.value = source["value"];
+	        this.source = source["source"];
+	    }
+	}
+	export class SensorSnapshot {
+	    provider: string;
+	    status: string;
+	    capturedAt: string;
+	    readings: SensorReading[];
+	    detail: string;
+
+	    static createFrom(source: any = {}) {
+	        return new SensorSnapshot(source);
+	    }
+
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.provider = source["provider"];
+	        this.status = source["status"];
+	        this.capturedAt = source["capturedAt"];
+	        this.readings = this.convertValues(source["readings"], SensorReading);
+	        this.detail = source["detail"];
+	    }
+
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class PowerDelivery {
 	    readings: BatteryReading[];
 	    acDrainDetected: boolean;
 	    maxDischargeMW: number;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new PowerDelivery(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.readings = this.convertValues(source["readings"], BatteryReading);
 	        this.acDrainDetected = source["acDrainDetected"];
 	        this.maxDischargeMW = source["maxDischargeMW"];
 	    }
-	
+
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
 		    if (!a) {
 		        return a;
@@ -539,11 +597,11 @@ export namespace model {
 	    batteryFullMWh: number;
 	    batteryWearPercent: number;
 	    thermalZoneMaxC: number;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new PowerStateInfo(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.activeSchemeGuid = source["activeSchemeGuid"];
@@ -567,11 +625,11 @@ export namespace model {
 	    freeGB: number;
 	    freePercent: number;
 	    isSystem: boolean;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new DiskInfo(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.drive = source["drive"];
@@ -584,11 +642,11 @@ export namespace model {
 	}
 	export class MemoryInfo {
 	    totalMB: number;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new MemoryInfo(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.totalMB = source["totalMB"];
@@ -608,6 +666,7 @@ export namespace model {
 	    disks: DiskInfo[];
 	    power: PowerStateInfo;
 	    powerDelivery: PowerDelivery;
+	    sensors: SensorSnapshot;
 	    throttleEvents: ThrottleEvent[];
 	    vendorServices: ServiceInfo[];
 	    samples: Sample[];
@@ -619,11 +678,11 @@ export namespace model {
 	    systemEvents: EventInfo[];
 	    analysis: AnalysisResult;
 	    collectorNotes: string[];
-	
+
 	    static createFrom(source: any = {}) {
 	        return new DiagnosticReport(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.schemaVersion = source["schemaVersion"];
@@ -639,6 +698,7 @@ export namespace model {
 	        this.disks = this.convertValues(source["disks"], DiskInfo);
 	        this.power = this.convertValues(source["power"], PowerStateInfo);
 	        this.powerDelivery = this.convertValues(source["powerDelivery"], PowerDelivery);
+	        this.sensors = this.convertValues(source["sensors"], SensorSnapshot);
 	        this.throttleEvents = this.convertValues(source["throttleEvents"], ThrottleEvent);
 	        this.vendorServices = this.convertValues(source["vendorServices"], ServiceInfo);
 	        this.samples = this.convertValues(source["samples"], Sample);
@@ -651,7 +711,7 @@ export namespace model {
 	        this.analysis = this.convertValues(source["analysis"], AnalysisResult);
 	        this.collectorNotes = source["collectorNotes"];
 	    }
-	
+
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
 		    if (!a) {
 		        return a;
@@ -670,16 +730,16 @@ export namespace model {
 		    return a;
 		}
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
+
+
+
 	export class RollbackRecord {
 	    kind?: string;
 	    serviceName: string;
@@ -694,11 +754,11 @@ export namespace model {
 	    result: string;
 	    rolledBack: boolean;
 	    rollbackTime: string;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new RollbackRecord(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.kind = source["kind"];
@@ -716,4 +776,12 @@ export namespace model {
 	        this.rollbackTime = source["rollbackTime"];
 	    }
 	}
+
+
+
+
+
+
+
+
 }
