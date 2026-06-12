@@ -1,6 +1,6 @@
 import './style.css';
-import { t, ruleText, causeText, evidenceText } from './i18n';
-import { GetStatus, RunScan, OpenLogFolder } from '../wailsjs/go/main/App';
+import { t, ruleText, causeText, evidenceText, actionText } from './i18n';
+import { GetStatus, RunScan, OpenLogFolder, RunAction, ListRollbackRecords, RollbackService } from '../wailsjs/go/main/App';
 import { EventsOn } from '../wailsjs/runtime/runtime';
 
 const LANG_KEY = 'diagnostic-studio-lang';
@@ -13,9 +13,13 @@ const state = {
   progress: { done: 0, total: 1 },
   error: '',
   tab: 'overview',
+  rollbackRecords: [],
+  actionResults: {}, // action key -> ActionResult
+  actionBusy: '',    // action key currently executing
+  confirm: null,     // {key, action} awaiting user confirmation
 };
 
-const TABS = ['overview', 'processes', 'startup', 'services', 'software', 'events'];
+const TABS = ['overview', 'actions', 'processes', 'startup', 'services', 'software', 'events'];
 
 const app = document.getElementById('app');
 
@@ -29,6 +33,9 @@ async function init() {
   } catch (e) {
     state.error = String(e);
   }
+  try {
+    state.rollbackRecords = (await ListRollbackRecords()) || [];
+  } catch { /* records are optional context */ }
   EventsOn('scan:progress', p => {
     state.progress = p;
     const bar = document.querySelector('.progress-fill');
@@ -162,10 +169,130 @@ function renderOverview(ui, r, a) {
     </section>` : ''}`;
 }
 
+function actionKey(act, i) {
+  return `${act.actionId}:${act.params?.serviceName || ''}:${i}`;
+}
+
+async function executeAction(key, act) {
+  state.actionBusy = key;
+  state.confirm = null;
+  render();
+  try {
+    state.actionResults[key] = await RunAction(act.actionId, act.params || {});
+  } catch (e) {
+    state.actionResults[key] = { actionId: act.actionId, status: 'failed', detail: String(e) };
+  }
+  state.actionBusy = '';
+  try {
+    state.rollbackRecords = (await ListRollbackRecords()) || [];
+  } catch { /* keep stale list */ }
+  render();
+}
+
+async function executeRollback(rec) {
+  state.actionBusy = `rollback:${rec.serviceName}:${rec.actionTime}`;
+  render();
+  try {
+    const res = await RollbackService(rec.serviceName, rec.actionTime);
+    state.actionResults[state.actionBusy] = res;
+    state.rollbackRecords = (await ListRollbackRecords()) || [];
+  } catch (e) {
+    state.actionResults[state.actionBusy] = { status: 'failed', detail: String(e) };
+  }
+  state.actionBusy = '';
+  render();
+}
+
+function renderActions(ui, r, a) {
+  const acts = a.actions || [];
+  const cards = acts.map((act, i) => {
+    const key = actionKey(act, i);
+    const at = actionText(state.lang, act.actionId, act.params);
+    const res = state.actionResults[key];
+    const busy = state.actionBusy === key;
+    const irreversible = act.actionId === 'action.clean-temp';
+    let status = '';
+    if (busy) status = `<span class="badge badge-low">${ui.act.running}</span>`;
+    else if (res) {
+      status = res.status === 'success'
+        ? `<span class="badge badge-ok">${ui.act.success}</span>${res.params?.freedMB !== undefined ? ` <span class="hint-inline">${esc(ui.act.freed(res.params))}</span>` : ''}`
+        : `<span class="badge badge-err">${ui.act.failed}</span> <span class="hint-inline">${esc(res.detail || '')}</span>`;
+    }
+    const button = act.recommendOnly
+      ? `<span class="badge badge-low">${ui.act.recommendOnly}</span>`
+      : (res?.status === 'success' ? '' : `<button class="btn act-run" data-key="${esc(key)}" data-idx="${i}" ${busy || state.actionBusy ? 'disabled' : ''}>${ui.act.run}</button>`);
+    return `
+      <div class="action-card">
+        <div class="action-head">
+          <span class="badge risk-${act.risk}">${ui.act.risk[act.risk] || act.risk}</span>
+          <span class="action-title">${esc(at.title)}</span>
+          <span class="action-status">${status}</span>
+          ${button}
+        </div>
+        <p class="action-desc">${esc(at.desc)}${irreversible ? ` <b>${ui.act.irreversible}</b>` : ''}</p>
+      </div>`;
+  }).join('');
+
+  const records = (state.rollbackRecords || []).slice().reverse().map(rec => {
+    const rbKey = `rollback:${rec.serviceName}:${rec.actionTime}`;
+    const res = state.actionResults[rbKey];
+    const busy = state.actionBusy === rbKey;
+    const canRestore = !rec.rolledBack && rec.result === 'disabled';
+    return `
+      <div class="action-card">
+        <div class="action-head">
+          <span class="action-title">${esc(rec.displayName || rec.serviceName)}</span>
+          ${rec.rolledBack
+            ? `<span class="badge badge-ok">${ui.act.rolledBack} ${esc(rec.rollbackTime)}</span>`
+            : (canRestore
+              ? `<button class="btn act-rollback" data-svc="${esc(rec.serviceName)}" data-time="${esc(rec.actionTime)}" ${state.actionBusy ? 'disabled' : ''}>${busy ? ui.act.running : ui.act.rollback}</button>`
+              : `<span class="badge badge-err">${esc(rec.result)}</span>`)}
+        </div>
+        <p class="action-desc">
+          ${esc(rec.serviceName)} · ${ui.act.recPrev}: ${esc(rec.prevStartMode)}/${esc(rec.prevState)} · ${esc(rec.actionTime)}
+          ${res && res.status === 'failed' ? `<br><span class="error">${esc(res.detail)}</span>` : ''}
+        </p>
+      </div>`;
+  }).join('');
+
+  const confirmModal = state.confirm ? (() => {
+    const at = actionText(state.lang, state.confirm.action.actionId, state.confirm.action.params);
+    const irreversible = state.confirm.action.actionId === 'action.clean-temp';
+    return `
+      <div class="modal-overlay">
+        <div class="modal">
+          <div class="modal-title">${ui.act.confirmTitle}</div>
+          <div class="action-head" style="margin:8px 0 4px">
+            <span class="badge risk-${state.confirm.action.risk}">${ui.act.risk[state.confirm.action.risk]}</span>
+            <span class="action-title">${esc(at.title)}</span>
+          </div>
+          <p class="action-desc">${esc(at.desc)}${irreversible ? ` <b>${ui.act.irreversible}</b>` : ''}</p>
+          <div class="modal-buttons">
+            <button class="btn" id="confirm-cancel">${ui.act.cancel}</button>
+            <button class="btn btn-primary" id="confirm-run">${ui.act.confirm}</button>
+          </div>
+        </div>
+      </div>`;
+  })() : '';
+
+  return `
+    <section class="panel">
+      ${cards || `<p class="hint">${ui.act.noActions}</p>`}
+    </section>
+    <section class="panel">
+      <div class="block-title">${ui.act.rollbackTitle}</div>
+      <p class="hint" style="margin-bottom:8px">${ui.act.rollbackHint}</p>
+      ${records || `<p class="hint">${ui.act.noRollback}</p>`}
+    </section>
+    ${confirmModal}`;
+}
+
 function renderTab(ui, r, a) {
   switch (state.tab) {
     case 'overview':
       return renderOverview(ui, r, a);
+    case 'actions':
+      return renderActions(ui, r, a);
     case 'processes':
       return `<section class="panel">${table(
         [ui.th.procName, ui.th.pid, ui.th.cpu, ui.th.mem],
@@ -191,7 +318,7 @@ function renderTab(ui, r, a) {
         [ui.th.name, ui.th.displayName, ui.th.state, ui.th.startMode, ui.th.hint],
         (r.vendorServices || []).map(s => [
           esc(s.name), esc(s.displayName),
-          s.state === 'Running' ? `<span class="badge badge-ok">${esc(s.state)}</span>` : esc(s.state),
+          `<span class="badge ${s.state === 'Running' ? 'badge-ok' : 'badge-low'}">${esc(s.state)}</span>`,
           esc(s.startMode), `<span class="mono">${esc(s.vendorHint)}</span>`,
         ]),
         ui.empty)}</section>`;
@@ -310,6 +437,25 @@ function render() {
     state.tab = el.dataset.tab;
     render();
   }));
+  document.querySelectorAll('.act-run').forEach(el => el.addEventListener('click', () => {
+    const acts = state.report?.analysis?.actions || [];
+    const act = acts[Number(el.dataset.idx)];
+    if (act) {
+      state.confirm = { key: el.dataset.key, action: act };
+      render();
+    }
+  }));
+  document.querySelectorAll('.act-rollback').forEach(el => el.addEventListener('click', () => {
+    const rec = (state.rollbackRecords || []).find(x => x.serviceName === el.dataset.svc && x.actionTime === el.dataset.time);
+    if (rec) executeRollback(rec);
+  }));
+  document.getElementById('confirm-cancel')?.addEventListener('click', () => {
+    state.confirm = null;
+    render();
+  });
+  document.getElementById('confirm-run')?.addEventListener('click', () => {
+    if (state.confirm) executeAction(state.confirm.key, state.confirm.action);
+  });
 }
 
 init();

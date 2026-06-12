@@ -32,7 +32,22 @@ export const COPY = {
       minClock: '最低频率',
       memUsed: '内存占用',
       diskActive: '磁盘活动',
-      tabs: { overview: '概览', processes: '进程', startup: '启动项', services: '服务', software: '软件', events: '事件' },
+      tabs: { overview: '概览', actions: '优化', processes: '进程', startup: '启动项', services: '服务', software: '软件', events: '事件' },
+      act: {
+        run: '执行', confirmTitle: '确认执行此操作?', confirm: '确认执行', cancel: '取消',
+        running: '执行中…', success: '执行成功', failed: '执行失败',
+        recommendOnly: '仅建议(不会自动执行)',
+        risk: { safe: '安全', review: '需评估', caution: '谨慎', high: '高风险' },
+        rollbackTitle: '服务回滚记录',
+        rollback: '一键还原',
+        rolledBack: '已还原',
+        noActions: '本次诊断未产生可执行的优化动作。',
+        noRollback: '暂无回滚记录。',
+        rollbackHint: '禁用服务前会先把原启动方式写入回滚记录(写入失败则不执行),可随时在此还原。',
+        irreversible: '注意:此操作不可恢复。',
+        freed: p => `已清理 ${p.freedMB} MB(${p.files} 个文件)`,
+        recPrev: '原状态',
+      },
       charts: { load: 'CPU 负载 (%)', mem: '内存占用 (%)', disk: '磁盘活动 (%)' },
       th: {
         procName: '进程', pid: 'PID', cpu: 'CPU', mem: '内存',
@@ -73,8 +88,10 @@ export const COPY = {
         desc: p => `检测到 ${p.startupCount} 个值得检查的启动项和 ${p.taskCount} 个第三方计划任务,共 ${p.count} 项。过多的更新器和助手会拖慢登录和日常响应。`,
       },
       'rule.vendor-services': {
-        title: 'Dell/Intel 后台服务偏多',
-        desc: p => `有 ${p.count} 个 Dell/Intel 服务正在运行。厂商支持、更新、遥测类服务会增加后台负载,部分还会影响电源调度行为。`,
+        title: 'Dell/Intel 后台服务',
+        desc: p => p.busyCount > 0
+          ? `${p.count} 个 Dell/Intel 服务在运行,其中 ${p.busyCount} 个在扫描期间有实际资源消耗(见证据)。`
+          : `${p.count} 个 Dell/Intel 服务在运行。数量本身属于正常背景信息,扫描期间未观测到明显资源消耗;如需精简可在优化页逐项处理。`,
       },
       'rule.duplicate-utilities': {
         title: '同类工具软件重复安装',
@@ -83,6 +100,31 @@ export const COPY = {
       'rule.no-major-issue': {
         title: '未发现明显瓶颈',
         desc: () => '本次采样窗口内 CPU 频率、内存、磁盘均未触发规则。如果卡顿是间歇性的,请在卡顿发生时运行深度扫描。',
+      },
+    },
+    actions: {
+      'action.power-high-performance': {
+        title: () => '切换到高性能电源计划',
+        desc: p => `当前电源计划为「${p.currentScheme}」。切换到高性能计划可解除调度限制,随时可在 Windows 设置中改回。`,
+      },
+      'action.reset-max-proc-state': {
+        title: () => '恢复最大处理器状态到 100%',
+        desc: p => `当前限制:AC ${p.acPercent}% / DC ${p.dcPercent}%。低于 100% 会直接压制 CPU 频率上限。`,
+      },
+      'action.clean-temp': {
+        title: () => '清理临时文件',
+        desc: () => '删除用户与系统临时目录中未被占用的文件,释放系统盘空间。',
+      },
+      'action.disable-service': {
+        title: p => `禁用服务:${p.displayName}`,
+        desc: p => {
+          const power = ['dell-optimizer', 'dell-power-manager', 'intel-dtt'].includes(p.hint);
+          return `服务名 ${p.serviceName}。禁用前会先保存原启动方式到回滚记录,可一键还原。${power ? '该服务可能影响电源调度行为。' : '禁用可减少厂商后台负载。'}`;
+        },
+      },
+      'action.uninstall-recommendation': {
+        title: p => `建议卸载:${p.displayName}`,
+        desc: () => '如确认不需要该组件,请在 设置 > 应用 > 安装的应用 中手动卸载。本工具不会自动卸载任何软件。',
       },
     },
     causes: {
@@ -106,6 +148,7 @@ export const COPY = {
       'ev.startup-count': p => `${p.count} 个值得检查的启动项`,
       'ev.task-count': p => `${p.count} 个第三方计划任务`,
       'ev.vendor-service-count': p => `${p.count} 个 Dell/Intel 服务正在运行`,
+      'ev.vendor-busy': p => `${p.displayName}(进程 ${p.process})CPU ${p.cpuPercent}%、内存 ${p.memMB} MB`,
       'ev.duplicate-apps': p => `同类软件:${p.names}`,
       'ev.on-battery': () => '扫描时正在使用电池供电',
       'ev.vendor-service-running': p => `${p.displayName}(${p.name})正在运行`,
@@ -149,7 +192,22 @@ export const COPY = {
       minClock: 'Min Clock',
       memUsed: 'Memory',
       diskActive: 'Disk Active',
-      tabs: { overview: 'Overview', processes: 'Processes', startup: 'Startup', services: 'Services', software: 'Software', events: 'Events' },
+      tabs: { overview: 'Overview', actions: 'Actions', processes: 'Processes', startup: 'Startup', services: 'Services', software: 'Software', events: 'Events' },
+      act: {
+        run: 'Run', confirmTitle: 'Run this action?', confirm: 'Run', cancel: 'Cancel',
+        running: 'Running…', success: 'Succeeded', failed: 'Failed',
+        recommendOnly: 'Recommendation only (never auto-executed)',
+        risk: { safe: 'Safe', review: 'Review', caution: 'Caution', high: 'High risk' },
+        rollbackTitle: 'Service Rollback Records',
+        rollback: 'Restore',
+        rolledBack: 'Restored',
+        noActions: 'This diagnosis produced no executable optimization actions.',
+        noRollback: 'No rollback records yet.',
+        rollbackHint: 'Before disabling a service the previous startup mode is written to a rollback record (the action aborts if the write fails). Restore any time from here.',
+        irreversible: 'Note: this operation cannot be undone.',
+        freed: p => `Freed ${p.freedMB} MB (${p.files} files)`,
+        recPrev: 'Previous',
+      },
       charts: { load: 'CPU Load (%)', mem: 'Memory Used (%)', disk: 'Disk Active (%)' },
       th: {
         procName: 'Process', pid: 'PID', cpu: 'CPU', mem: 'Memory',
@@ -190,8 +248,10 @@ export const COPY = {
         desc: p => `Found ${p.startupCount} review-worthy startup entries and ${p.taskCount} third-party scheduled tasks (${p.count} total). Updaters and assistants slow login and day-to-day responsiveness.`,
       },
       'rule.vendor-services': {
-        title: 'Many Dell/Intel Background Services',
-        desc: p => `${p.count} Dell/Intel services are running. Vendor support, update, and telemetry services add background load; some influence power scheduling.`,
+        title: 'Dell/Intel Background Services',
+        desc: p => p.busyCount > 0
+          ? `${p.count} Dell/Intel services are running; ${p.busyCount} consumed measurable resources during the scan (see evidence).`
+          : `${p.count} Dell/Intel services are running. The count itself is normal background context — no significant resource usage was observed during the scan. Trim individually from the Actions tab if desired.`,
       },
       'rule.duplicate-utilities': {
         title: 'Duplicate Utility Software',
@@ -200,6 +260,31 @@ export const COPY = {
       'rule.no-major-issue': {
         title: 'No Major Bottleneck Detected',
         desc: () => 'CPU frequency, memory, and disk stayed within normal ranges in this sampling window. If the slowdown is intermittent, run the deep scan while it is happening.',
+      },
+    },
+    actions: {
+      'action.power-high-performance': {
+        title: () => 'Switch to High Performance Power Plan',
+        desc: p => `Active plan is "${p.currentScheme}". High performance removes scheduling limits; revert any time in Windows Settings.`,
+      },
+      'action.reset-max-proc-state': {
+        title: () => 'Reset Maximum Processor State to 100%',
+        desc: p => `Current cap: AC ${p.acPercent}% / DC ${p.dcPercent}%. Anything below 100% directly caps CPU frequency.`,
+      },
+      'action.clean-temp': {
+        title: () => 'Clean Temporary Files',
+        desc: () => 'Deletes unlocked files under the user and system temp directories to free system-drive space.',
+      },
+      'action.disable-service': {
+        title: p => `Disable Service: ${p.displayName}`,
+        desc: p => {
+          const power = ['dell-optimizer', 'dell-power-manager', 'intel-dtt'].includes(p.hint);
+          return `Service ${p.serviceName}. The previous startup mode is saved to a rollback record first; one-click restore available. ${power ? 'This service may influence power scheduling.' : 'Disabling reduces vendor background load.'}`;
+        },
+      },
+      'action.uninstall-recommendation': {
+        title: p => `Consider Uninstalling: ${p.displayName}`,
+        desc: () => 'If you confirm this component is unnecessary, uninstall it manually via Settings > Apps. This tool never uninstalls software automatically.',
       },
     },
     causes: {
@@ -223,6 +308,7 @@ export const COPY = {
       'ev.startup-count': p => `${p.count} review-worthy startup entries`,
       'ev.task-count': p => `${p.count} third-party scheduled tasks`,
       'ev.vendor-service-count': p => `${p.count} Dell/Intel services running`,
+      'ev.vendor-busy': p => `${p.displayName} (process ${p.process}) CPU ${p.cpuPercent}%, memory ${p.memMB} MB`,
       'ev.duplicate-apps': p => `Same-category apps: ${p.names}`,
       'ev.on-battery': () => 'Running on battery during the scan',
       'ev.vendor-service-running': p => `${p.displayName} (${p.name}) is running`,
@@ -254,6 +340,12 @@ export function ruleText(lang, ruleId, params) {
 
 export function causeText(lang, causeId) {
   return t(lang).causes[causeId] || { title: causeId, desc: '' };
+}
+
+export function actionText(lang, actionId, params) {
+  const a = t(lang).actions[actionId];
+  if (!a) return { title: actionId, desc: JSON.stringify(params) };
+  return { title: a.title(params || {}), desc: a.desc(params || {}) };
 }
 
 export function evidenceText(lang, ev) {

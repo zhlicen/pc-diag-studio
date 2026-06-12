@@ -6,8 +6,20 @@ export function GetStatus() {
   return window['go']['main']['App']['GetStatus']();
 }
 
+export function ListRollbackRecords() {
+  return window['go']['main']['App']['ListRollbackRecords']();
+}
+
 export function OpenLogFolder() {
   return window['go']['main']['App']['OpenLogFolder']();
+}
+
+export function RollbackService(arg1, arg2) {
+  return window['go']['main']['App']['RollbackService'](arg1, arg2);
+}
+
+export function RunAction(arg1, arg2) {
+  return window['go']['main']['App']['RunAction'](arg1, arg2);
 }
 
 export function RunScan(arg1) {

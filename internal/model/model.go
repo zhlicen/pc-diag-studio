@@ -204,4 +204,38 @@ type AnalysisResult struct {
 	Findings       []Finding              `json:"findings"`
 	Attribution    []AttributionCandidate `json:"attribution"`
 	CategoryScores map[string]int         `json:"categoryScores"`
+	Actions        []OptimizationAction   `json:"actions"`
+}
+
+// OptimizationAction is a manual, user-confirmed action recommended by the
+// rules. RecommendOnly actions are never executable from the app (e.g.
+// vendor software uninstall guidance).
+type OptimizationAction struct {
+	ActionID      string         `json:"actionId"`
+	Risk          string         `json:"risk"` // safe / review / caution / high
+	Params        map[string]any `json:"params"`
+	RecommendOnly bool           `json:"recommendOnly"`
+	SourceRuleID  string         `json:"sourceRuleId"` // finding that motivated this action
+}
+
+// ActionResult reports one executed action back to the UI and the op log.
+type ActionResult struct {
+	ActionID string         `json:"actionId"`
+	Status   string         `json:"status"` // success / failed
+	Detail   string         `json:"detail"` // technical detail, display-only
+	Params   map[string]any `json:"params"`
+	Time     string         `json:"time"`
+}
+
+// RollbackRecord is persisted BEFORE a service is modified; service disable
+// fails closed when this record cannot be written.
+type RollbackRecord struct {
+	ServiceName   string `json:"serviceName"`
+	DisplayName   string `json:"displayName"`
+	PrevStartMode string `json:"prevStartMode"` // Auto / Manual / Disabled
+	PrevState     string `json:"prevState"`     // Running / Stopped
+	ActionTime    string `json:"actionTime"`
+	Result        string `json:"result"` // disabled / failed
+	RolledBack    bool   `json:"rolledBack"`
+	RollbackTime  string `json:"rollbackTime"`
 }

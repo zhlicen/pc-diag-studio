@@ -21,6 +21,46 @@ export namespace main {
 
 export namespace model {
 	
+	export class ActionResult {
+	    actionId: string;
+	    status: string;
+	    detail: string;
+	    params: Record<string, any>;
+	    time: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ActionResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.actionId = source["actionId"];
+	        this.status = source["status"];
+	        this.detail = source["detail"];
+	        this.params = source["params"];
+	        this.time = source["time"];
+	    }
+	}
+	export class OptimizationAction {
+	    actionId: string;
+	    risk: string;
+	    params: Record<string, any>;
+	    recommendOnly: boolean;
+	    sourceRuleId: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new OptimizationAction(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.actionId = source["actionId"];
+	        this.risk = source["risk"];
+	        this.params = source["params"];
+	        this.recommendOnly = source["recommendOnly"];
+	        this.sourceRuleId = source["sourceRuleId"];
+	    }
+	}
 	export class AttributionCandidate {
 	    causeId: string;
 	    confidence: string;
@@ -115,6 +155,7 @@ export namespace model {
 	    findings: Finding[];
 	    attribution: AttributionCandidate[];
 	    categoryScores: Record<string, number>;
+	    actions: OptimizationAction[];
 	
 	    static createFrom(source: any = {}) {
 	        return new AnalysisResult(source);
@@ -129,6 +170,7 @@ export namespace model {
 	        this.findings = this.convertValues(source["findings"], Finding);
 	        this.attribution = this.convertValues(source["attribution"], AttributionCandidate);
 	        this.categoryScores = source["categoryScores"];
+	        this.actions = this.convertValues(source["actions"], OptimizationAction);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -528,6 +570,33 @@ export namespace model {
 	
 	
 	
+	
+	export class RollbackRecord {
+	    serviceName: string;
+	    displayName: string;
+	    prevStartMode: string;
+	    prevState: string;
+	    actionTime: string;
+	    result: string;
+	    rolledBack: boolean;
+	    rollbackTime: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new RollbackRecord(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.serviceName = source["serviceName"];
+	        this.displayName = source["displayName"];
+	        this.prevStartMode = source["prevStartMode"];
+	        this.prevState = source["prevState"];
+	        this.actionTime = source["actionTime"];
+	        this.result = source["result"];
+	        this.rolledBack = source["rolledBack"];
+	        this.rollbackTime = source["rollbackTime"];
+	    }
+	}
 	
 	
 	

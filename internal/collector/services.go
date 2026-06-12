@@ -1,10 +1,15 @@
 package collector
 
 import (
+	"regexp"
 	"strings"
 
 	"diagnostic-studio/internal/model"
 )
+
+// Word-boundary match: "intel" must not match "Intelligent" (BITS displays
+// as "Background Intelligent Transfer Service").
+var reIntelWord = regexp.MustCompile(`\bintel\b|\bintel\(r\)`)
 
 const servicesScript = `
 $s = Get-CimInstance Win32_Service | Select-Object Name,DisplayName,State,StartMode,PathName
@@ -40,7 +45,7 @@ func vendorHint(s rawService) string {
 		name == "esifsvc" || strings.Contains(name, "dttservice") || strings.Contains(name, "ipfsvc") ||
 		strings.Contains(both, "innovation platform framework"):
 		return model.HintIntelDTT
-	case strings.Contains(both, "intel"):
+	case reIntelWord.MatchString(both):
 		return model.HintIntelOther
 	}
 	return ""

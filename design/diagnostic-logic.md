@@ -187,13 +187,21 @@ Low system drive space affects updates, paging, caches, and app startup.
 
 ### Dell/Intel Management Services
 
-Triggers when:
+Two tiers (revised after fleet-bias review — a stock Dell laptop legitimately
+runs a dozen Intel helper services, so raw count must not be a warning or it
+fires on every machine and trains users to ignore the tool):
 
-- 4 or more matching Dell/Intel services are running.
+- **Warning** (score penalty): one or more vendor service processes consumed
+  measurable resources during the scan (CPU >= 3% or working set >= 150 MB,
+  cross-referenced against sampled top processes). Evidence names each busy
+  service with its usage.
+- **Info** (no score penalty): 4 or more vendor services running but none
+  measurably busy. Pure context; per-service disable actions remain available
+  in the Actions tab.
 
-Rationale:
-
-Vendor support, update, telemetry, and optimization services can add background load or influence platform power behavior.
+Power-manager components (Dell Optimizer / Dell Power Manager / Intel DTT)
+are handled separately by the frequency root-cause attribution, where their
+correlation with measured downclocking is the evidence.
 
 ### Startup And Scheduled Task Load
 

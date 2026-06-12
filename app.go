@@ -15,6 +15,7 @@ import (
 	"diagnostic-studio/internal/analyzer"
 	"diagnostic-studio/internal/collector"
 	"diagnostic-studio/internal/model"
+	"diagnostic-studio/internal/optimizer"
 )
 
 const appVersion = "0.1.0"
@@ -83,6 +84,39 @@ func (a *App) OpenLogFolder() {
 	dir := logRoot()
 	_ = os.MkdirAll(dir, 0o755)
 	_ = exec.Command("explorer.exe", dir).Start()
+}
+
+// RunAction executes a user-confirmed optimization action. RecommendOnly
+// actions are not executable and unknown IDs are rejected.
+func (a *App) RunAction(actionID string, params map[string]any) model.ActionResult {
+	opt := optimizer.New(logRoot())
+	switch actionID {
+	case "action.power-high-performance":
+		return opt.SetHighPerformance()
+	case "action.reset-max-proc-state":
+		return opt.ResetMaxProcessorState()
+	case "action.clean-temp":
+		return opt.CleanTemp()
+	case "action.disable-service":
+		name, _ := params["serviceName"].(string)
+		return opt.DisableService(name)
+	default:
+		return model.ActionResult{ActionID: actionID, Status: "failed", Detail: "unknown or non-executable action"}
+	}
+}
+
+// ListRollbackRecords returns all persisted service rollback records.
+func (a *App) ListRollbackRecords() []model.RollbackRecord {
+	records, err := optimizer.New(logRoot()).ReadRollbackRecords()
+	if err != nil {
+		return nil
+	}
+	return records
+}
+
+// RollbackService restores a previously disabled service from its record.
+func (a *App) RollbackService(serviceName, actionTime string) model.ActionResult {
+	return optimizer.New(logRoot()).RollbackService(serviceName, actionTime)
 }
 
 func logRoot() string {
