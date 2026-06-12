@@ -66,7 +66,7 @@ else { @{exists=$false; hex=''} | ConvertTo-Json }`, approvedKey, name)
 
 	disable := fmt.Sprintf(`
 $bytes = [byte[]](3,0,0,0) + [BitConverter]::GetBytes([DateTime]::UtcNow.ToFileTime())
-Set-ItemProperty -Path '%s' -Name '%s' -Value $bytes -Type Binary`, approvedKey, name)
+Set-ItemProperty -Path '%s' -Name '%s' -Value $bytes`, approvedKey, name)
 	if out, err := runShell(disable); err != nil {
 		_ = o.updateRollbackRecord(name, record.ActionTime, func(r *model.RollbackRecord) { r.Result = "failed" })
 		return o.logged(result(id, "failed", err.Error()+" "+out, params))
@@ -108,7 +108,7 @@ func (o *Optimizer) RollbackStartupItem(name, actionTime string) model.ActionRes
 		for i := 0; i+1 < len(rec.PrevValueHex); i += 2 {
 			pairs = append(pairs, "0x"+rec.PrevValueHex[i:i+2])
 		}
-		script = fmt.Sprintf(`Set-ItemProperty -Path '%s' -Name '%s' -Value ([byte[]](%s)) -Type Binary`,
+		script = fmt.Sprintf(`Set-ItemProperty -Path '%s' -Name '%s' -Value ([byte[]](%s))`,
 			rec.ApprovedKey, rec.ValueName, strings.Join(pairs, ","))
 	} else {
 		script = fmt.Sprintf(`Remove-ItemProperty -Path '%s' -Name '%s' -ErrorAction Stop`, rec.ApprovedKey, rec.ValueName)

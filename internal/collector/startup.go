@@ -1,6 +1,7 @@
 package collector
 
 import (
+	"regexp"
 	"strings"
 
 	"diagnostic-studio/internal/model"
@@ -21,26 +22,38 @@ var startupWhitelist = []string{
 }
 
 // StartupApproved holds enable/disable state as binary values: an odd first
-// byte means disabled. Items without a value are enabled by default.
+// byte means disabled. Items without a value are enabled by default. State is
+// location-scoped because different users can have startup values with the
+// same display name.
 const startupApprovedScript = `
 $keys = @(
   'HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run',
   'HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run32',
   'HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder',
   'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run',
+  'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run32',
   'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder'
 )
-$out = @{}
+foreach ($sid in Get-ChildItem Registry::HKEY_USERS -ErrorAction SilentlyContinue | Where-Object { $_.PSChildName -match '^S-1-5-21-' }) {
+    $keys += "Registry::HKEY_USERS\$($sid.PSChildName)\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run"
+    $keys += "Registry::HKEY_USERS\$($sid.PSChildName)\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run32"
+    $keys += "Registry::HKEY_USERS\$($sid.PSChildName)\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder"
+}
+$out = @()
 foreach ($k in $keys) {
     if (-not (Test-Path $k)) { continue }
     $p = Get-Item $k
     foreach ($name in $p.GetValueNames()) {
         $v = $p.GetValue($name)
-        if ($v -is [byte[]] -and $v.Length -gt 0) { $out["$($name.ToLower())"] = [int]$v[0] }
+        if ($v -is [byte[]] -and $v.Length -gt 0) {
+            $out += [PSCustomObject]@{ Key = $k; Name = $name; FirstByte = [int]$v[0] }
+        }
     }
 }
-$out | ConvertTo-Json
+ConvertTo-Json -InputObject @($out) -Depth 2
 `
+
+var startupSIDPattern = regexp.MustCompile(`(?i)^s-\d+(?:-\d+)+$`)
 
 func collectStartupItems(notes *[]string) []model.StartupItem {
 	var raw []struct {
@@ -54,9 +67,18 @@ func collectStartupItems(notes *[]string) []model.StartupItem {
 		return nil
 	}
 
+	var approvedRows []struct {
+		Key       string `json:"Key"`
+		Name      string `json:"Name"`
+		FirstByte int    `json:"FirstByte"`
+	}
 	approved := map[string]int{}
-	if err := runPSJSON(startupApprovedScript, &approved); err != nil {
+	if err := runPSJSON(startupApprovedScript, &approvedRows); err != nil {
 		*notes = append(*notes, "startup approved state: "+err.Error())
+	} else {
+		for _, row := range approvedRows {
+			approved[startupApprovedStateKey(row.Key, row.Name)] = row.FirstByte
+		}
 	}
 
 	items := make([]model.StartupItem, 0, len(raw))
@@ -69,7 +91,8 @@ func collectStartupItems(notes *[]string) []model.StartupItem {
 				break
 			}
 		}
-		flag, hasFlag := approved[strings.ToLower(s.Name)]
+		approvedKey := StartupApprovedKey(s.Location)
+		flag, hasFlag := approved[startupApprovedStateKey(approvedKey, s.Name)]
 		items = append(items, model.StartupItem{
 			Name:         s.Name,
 			Command:      s.Command,
@@ -77,31 +100,64 @@ func collectStartupItems(notes *[]string) []model.StartupItem {
 			User:         s.User,
 			ReviewWorthy: review,
 			Disabled:     hasFlag && flag%2 == 1,
-			CanToggle:    StartupApprovedKey(s.Location) != "",
+			CanToggle:    approvedKey != "",
 		})
 	}
 	return items
 }
 
+func startupApprovedStateKey(approvedKey, valueName string) string {
+	return strings.ToLower(strings.TrimSpace(approvedKey)) + "\x00" + strings.ToLower(strings.TrimSpace(valueName))
+}
+
 // StartupApprovedKey maps a Win32_StartupCommand location to the registry
 // key holding its enable/disable state. Empty means the optimizer cannot
-// safely toggle this item (e.g. another user's HKU hive).
+// safely toggle this item.
 func StartupApprovedKey(location string) string {
-	loc := strings.ToLower(location)
+	loc := strings.TrimSpace(location)
+	lower := strings.ToLower(loc)
 	switch {
-	case strings.HasPrefix(loc, `hklm\`) && strings.HasSuffix(loc, `\run`):
-		return `HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run`
-	case strings.HasPrefix(loc, `hklm\`) && strings.HasSuffix(loc, `\run32`):
+	case strings.HasPrefix(lower, `hklm\`) && strings.HasSuffix(lower, `\run32`):
 		return `HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run32`
-	case strings.HasPrefix(loc, `hku\`) && strings.HasSuffix(loc, `\run`):
-		// Elevated-same-user scans see their own hive as HKU\<sid>; map to HKCU.
+	case strings.HasPrefix(lower, `hklm\`) && strings.HasSuffix(lower, `\run`):
+		return `HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run`
+	case strings.HasPrefix(lower, `hku\`) && strings.HasSuffix(lower, `\run32`):
+		if sid := startupLocationSID(loc); sid != "" {
+			return `Registry::HKEY_USERS\` + sid + `\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run32`
+		}
+	case strings.HasPrefix(lower, `hku\`) && strings.HasSuffix(lower, `\run`):
+		if sid := startupLocationSID(loc); sid != "" {
+			return `Registry::HKEY_USERS\` + sid + `\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run`
+		}
+	case strings.HasPrefix(lower, `hkcu\`) && strings.HasSuffix(lower, `\run32`):
+		return `HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run32`
+	case strings.HasPrefix(lower, `hkcu\`) && strings.HasSuffix(lower, `\run`):
 		return `HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run`
-	case loc == "startup":
+	case strings.HasPrefix(lower, `hklm\`) && strings.Contains(lower, `startup`):
+		return `HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder`
+	case strings.HasPrefix(lower, `hku\`) && strings.Contains(lower, `startup`):
+		if sid := startupLocationSID(loc); sid != "" {
+			return `Registry::HKEY_USERS\` + sid + `\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder`
+		}
+	case strings.HasPrefix(lower, `hkcu\`) && strings.Contains(lower, `startup`):
 		return `HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder`
-	case loc == "common startup":
+	case lower == "startup":
+		return `HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder`
+	case lower == "common startup":
 		return `HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder`
 	}
 	return ""
+}
+
+func startupLocationSID(location string) string {
+	parts := strings.Split(location, `\`)
+	if len(parts) < 2 || !strings.EqualFold(parts[0], "HKU") {
+		return ""
+	}
+	if !startupSIDPattern.MatchString(parts[1]) {
+		return ""
+	}
+	return parts[1]
 }
 
 // Non-Microsoft scheduled tasks; the \Microsoft\* tree is OS-managed noise.
