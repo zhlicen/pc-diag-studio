@@ -6,25 +6,41 @@
 
 ## ⚠️ Immediate actions for the next contributor
 
-1. **`git status` first.** The latest pushed checkpoint should include M4 plus
-   follow-up GUI/startup fixes (`98205c2`). If local changes exist, inspect
-   them before writing new code.
-2. **Keep the build green.** M4 has passed `go build ./...`, `wails build`,
-   and a 10-second `colltest` smoke run. Re-run those checks after backend,
-   frontend binding, collector, analyzer, or action changes.
-3. **Finish M4 user acceptance before claiming M4 done.** The remaining tests
-   require the GUI and, for rollback checks, deliberate harmless system
-   mutations by the owner.
+1. **`git status` first.** The current local release checkpoint is `v0.5.0`
+   (M5 AI + polish). Remote push may still lag behind; verify `main...origin/main`
+   before starting work.
+2. **Keep the build green.** v0.5.0 passed `npm run build`, `wails build`,
+   `go test ./...`, `git diff --check`, and a 10-second `colltest` smoke run.
+   Re-run those checks after backend, frontend binding, collector, analyzer,
+   or action changes.
+3. **Remaining acceptance is manual/system-level.** Rollback tests and
+   second-machine smoke require deliberate actions by the owner.
 
 ## Milestone ledger
 
 | Milestone | Code | Compiled | User-verified | Committed | Pushed |
 |---|---|---|---|---|---|
-| M1 skeleton + frequency root-cause attribution | ✅ | ✅ | ✅ (incl. forced-throttle test) | ✅ | ✅ |
-| M2 full rules + workspace tabs | ✅ | ✅ | ✅ | ✅ | ✅ |
-| M3 actions + fail-closed rollback | ✅ | ✅ | ✅ (user ran app; encoding/style fixes verified) | ✅ | ✅ |
-| M4 symptom-driven diagnosis (see below) | ✅ | ✅ (`go build` + `wails build`) | ⏳ GUI/actions pending | ✅ `2e045f0` | ✅ |
-| M5 AI + release polish | ✅ AI layer | ✅ (`go test` + `wails build`) | ⏳ endpoint/second-PC pending | ⏳ local | ⏳ |
+| M1 skeleton + frequency root-cause attribution | done | done | done (incl. forced-throttle test) | done | done |
+| M2 full rules + workspace tabs | done | done | done | done | done |
+| M3 actions + fail-closed rollback | done | done | done (user ran app; encoding/style fixes verified) | done | done |
+| M4 symptom-driven diagnosis (see below) | done | done (`go build` + `wails build`) | GUI/actions partially checked; rollback manual tests pending | done | done |
+| M5 AI + release polish | done | done (`npm run build` + `go test` + `wails build`) | AI endpoint verified; second-PC smoke pending | done (`v0.5.0`) | pending |
+
+## Release checkpoint
+
+`v0.5.0` is the first M5 release candidate. It includes:
+
+- M4 symptom-driven diagnosis, lag markers, power-delivery evidence, KB-gated
+  actions, startup rollback, and evidence click-through.
+- M5 optional AI explanation layer with DPAPI-encrypted API key storage,
+  redacted summary preview, OpenAI-compatible `/chat/completions` calls, and
+  Markdown-rendered explanations.
+- GUI polish after user acceptance: startup state alignment with Task Manager,
+  non-wrapping state badges, brand-aware vendor service labels, duplicate AI
+  settings button removal, and improved AI Markdown tables/rules/lists.
+
+Build artifact: `build\bin\diagnostic-studio.exe` (about 11.07 MB on
+2026-06-12). The tag is local until pushed.
 
 ## What M4 contains (code written, build-verified, user acceptance pending)
 
@@ -115,30 +131,43 @@ frontend/src/style.css          Diagnostic Studio visual system
 
 ## M5 status
 
-Implemented in the current local checkpoint:
+Implemented in `v0.5.0`:
 
 - AI settings UI: Base URL, model, enabled flag, API key entry, key clearing.
 - API key storage: encrypted via Windows DPAPI under `.\data\ai-config.json`;
   `GetAIConfig` never returns the key.
 - AI explanation tab: preview the reduced+redacted summary and generate an
   explanation from an OpenAI-compatible `/chat/completions` endpoint.
+- AI Markdown rendering: headings, lists, code, blockquotes, horizontal rules,
+  and pipe tables render in the GUI.
+- Brand-aware vendor labels: Intel-only systems no longer show a Dell/Intel
+  finding title.
 - AI safety boundary: AI receives no tools and cannot execute actions; local
   rules remain the only source of executable optimizations.
 - Automated safety test: saving a test key verifies that plaintext does not
   appear in the config file.
 
-Remaining M5 acceptance:
+Completed M5 checks:
 
-- Configure a real OpenAI-compatible endpoint and verify the AI explanation.
+- Configured an OpenAI-compatible endpoint and generated an AI explanation in
+  the GUI.
 - Manually inspect the redacted preview for username/computer/path leakage on
   a real report.
+- `npm run build`
+- `wails build`
+- `go test ./...`
+- `go run ./cmd/colltest -duration 10 -interval 1`
+- executable size check: about 11.07 MB.
+
+Remaining M5 acceptance:
+
 - Copy the built folder to a second Windows 11 machine and smoke-test launch,
   scan, log path, and AI key portability behavior (key should not decrypt there).
 
 ## Future expectations
 
-- **M5 release polish still pending**: endpoint acceptance, localization pass,
-  executable size check, and second-machine smoke test. See
+- **Post-v0.5.0 polish**: second-machine smoke test, broader localization copy
+  review, and optional release packaging/signing decisions. See
   [product-plan.md](product-plan.md) and [optimization-and-safety.md](optimization-and-safety.md).
 - Deferred ideas (do not start without the owner's ask): HWiNFO shared-memory
   sensor ingestion, Lenovo/HP vendor packs, fleet report aggregation/compare,
