@@ -6,9 +6,9 @@
 
 ## ⚠️ Immediate actions for the next contributor
 
-1. **`git status` first.** The latest pushed checkpoint should be M4
-   (`2e045f0`, `Implement M4 symptom-driven diagnosis`) with a clean working
-   tree. If local changes exist, inspect them before writing new code.
+1. **`git status` first.** The latest pushed checkpoint should include M4 plus
+   follow-up GUI/startup fixes (`98205c2`). If local changes exist, inspect
+   them before writing new code.
 2. **Keep the build green.** M4 has passed `go build ./...`, `wails build`,
    and a 10-second `colltest` smoke run. Re-run those checks after backend,
    frontend binding, collector, analyzer, or action changes.
@@ -24,7 +24,7 @@
 | M2 full rules + workspace tabs | ✅ | ✅ | ✅ | ✅ | ✅ |
 | M3 actions + fail-closed rollback | ✅ | ✅ | ✅ (user ran app; encoding/style fixes verified) | ✅ | ✅ |
 | M4 symptom-driven diagnosis (see below) | ✅ | ✅ (`go build` + `wails build`) | ⏳ GUI/actions pending | ✅ `2e045f0` | ✅ |
-| M5 AI + release polish | not started | — | — | — | — |
+| M5 AI + release polish | ✅ AI layer | ✅ (`go test` + `wails build`) | ⏳ endpoint/second-PC pending | ⏳ local | ⏳ |
 
 ## What M4 contains (code written, build-verified, user acceptance pending)
 
@@ -113,11 +113,32 @@ frontend/src/main.js            rendering, tabs, modals, evidence links
 frontend/src/style.css          Diagnostic Studio visual system
 ```
 
+## M5 status
+
+Implemented in the current local checkpoint:
+
+- AI settings UI: Base URL, model, enabled flag, API key entry, key clearing.
+- API key storage: encrypted via Windows DPAPI under `.\data\ai-config.json`;
+  `GetAIConfig` never returns the key.
+- AI explanation tab: preview the reduced+redacted summary and generate an
+  explanation from an OpenAI-compatible `/chat/completions` endpoint.
+- AI safety boundary: AI receives no tools and cannot execute actions; local
+  rules remain the only source of executable optimizations.
+- Automated safety test: saving a test key verifies that plaintext does not
+  appear in the config file.
+
+Remaining M5 acceptance:
+
+- Configure a real OpenAI-compatible endpoint and verify the AI explanation.
+- Manually inspect the redacted preview for username/computer/path leakage on
+  a real report.
+- Copy the built folder to a second Windows 11 machine and smoke-test launch,
+  scan, log path, and AI key portability behavior (key should not decrypt there).
+
 ## Future expectations
 
-- **M5 (next planned)**: AI explanation layer — OpenAI-compatible endpoint,
-  key via Windows DPAPI (never plaintext), reduced+redacted summary, AI never
-  executes anything. Then release polish + second-machine smoke test. See
+- **M5 release polish still pending**: endpoint acceptance, localization pass,
+  executable size check, and second-machine smoke test. See
   [product-plan.md](product-plan.md) and [optimization-and-safety.md](optimization-and-safety.md).
 - Deferred ideas (do not start without the owner's ask): HWiNFO shared-memory
   sensor ingestion, Lenovo/HP vendor packs, fleet report aggregation/compare,

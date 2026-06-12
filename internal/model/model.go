@@ -24,30 +24,30 @@ const (
 )
 
 type DiagnosticReport struct {
-	SchemaVersion  int              `json:"schemaVersion"`
-	GeneratedAt    string           `json:"generatedAt"`
-	ScanMode       ScanMode         `json:"scanMode"`
-	DurationSec    int              `json:"durationSec"`
-	Symptom        string           `json:"symptom"`    // symptom.* or empty
-	LagMarkers     []int            `json:"lagMarkers"` // offsets (sec) where the user pressed "it's lagging now"
-	IsAdmin        bool             `json:"isAdmin"`
-	Computer       ComputerInfo     `json:"computer"`
-	CPU            CPUInfo          `json:"cpu"`
-	Memory         MemoryInfo       `json:"memory"`
-	Disks          []DiskInfo       `json:"disks"`
-	Power          PowerStateInfo   `json:"power"`
-	PowerDelivery  PowerDelivery    `json:"powerDelivery"`
-	ThrottleEvents []ThrottleEvent  `json:"throttleEvents"`
-	VendorServices []ServiceInfo    `json:"vendorServices"`
-	Samples        []Sample         `json:"samples"`
-	Sampling       SamplingSummary  `json:"sampling"`
-	Processes      []ProcessInfo    `json:"processes"`
-	StartupItems   []StartupItem    `json:"startupItems"`
-	ScheduledTasks []ScheduledTask  `json:"scheduledTasks"`
-	InstalledApps  []InstalledApp   `json:"installedApps"`
-	SystemEvents   []EventInfo      `json:"systemEvents"`
-	Analysis       AnalysisResult   `json:"analysis"`
-	CollectorNotes []string         `json:"collectorNotes"` // non-fatal collection failures, for honesty in the report
+	SchemaVersion  int             `json:"schemaVersion"`
+	GeneratedAt    string          `json:"generatedAt"`
+	ScanMode       ScanMode        `json:"scanMode"`
+	DurationSec    int             `json:"durationSec"`
+	Symptom        string          `json:"symptom"`    // symptom.* or empty
+	LagMarkers     []int           `json:"lagMarkers"` // offsets (sec) where the user pressed "it's lagging now"
+	IsAdmin        bool            `json:"isAdmin"`
+	Computer       ComputerInfo    `json:"computer"`
+	CPU            CPUInfo         `json:"cpu"`
+	Memory         MemoryInfo      `json:"memory"`
+	Disks          []DiskInfo      `json:"disks"`
+	Power          PowerStateInfo  `json:"power"`
+	PowerDelivery  PowerDelivery   `json:"powerDelivery"`
+	ThrottleEvents []ThrottleEvent `json:"throttleEvents"`
+	VendorServices []ServiceInfo   `json:"vendorServices"`
+	Samples        []Sample        `json:"samples"`
+	Sampling       SamplingSummary `json:"sampling"`
+	Processes      []ProcessInfo   `json:"processes"`
+	StartupItems   []StartupItem   `json:"startupItems"`
+	ScheduledTasks []ScheduledTask `json:"scheduledTasks"`
+	InstalledApps  []InstalledApp  `json:"installedApps"`
+	SystemEvents   []EventInfo     `json:"systemEvents"`
+	Analysis       AnalysisResult  `json:"analysis"`
+	CollectorNotes []string        `json:"collectorNotes"` // non-fatal collection failures, for honesty in the report
 }
 
 type ProcessInfo struct {
@@ -146,18 +146,18 @@ type PowerStateInfo struct {
 // undersized, failing, or unrecognized power adapter — no kernel driver
 // needed.
 type PowerDelivery struct {
-	Readings         []BatteryReading `json:"readings"`
-	ACDrainDetected  bool             `json:"acDrainDetected"`
-	MaxDischargeMW   int              `json:"maxDischargeMW"`
+	Readings        []BatteryReading `json:"readings"`
+	ACDrainDetected bool             `json:"acDrainDetected"`
+	MaxDischargeMW  int              `json:"maxDischargeMW"`
 }
 
 type BatteryReading struct {
-	AtSec          int  `json:"atSec"` // offset from scan start
-	PowerOnline    bool `json:"powerOnline"`
-	Charging       bool `json:"charging"`
-	Discharging    bool `json:"discharging"`
-	ChargeRateMW   int  `json:"chargeRateMW"`
-	DischargeRateMW int `json:"dischargeRateMW"`
+	AtSec           int  `json:"atSec"` // offset from scan start
+	PowerOnline     bool `json:"powerOnline"`
+	Charging        bool `json:"charging"`
+	Discharging     bool `json:"discharging"`
+	ChargeRateMW    int  `json:"chargeRateMW"`
+	DischargeRateMW int  `json:"dischargeRateMW"`
 }
 
 type ThrottleEvent struct {
@@ -187,14 +187,14 @@ const (
 )
 
 type Sample struct {
-	OffsetSec        int     `json:"offsetSec"`
-	CPUPerfPercent   float64 `json:"cpuPerfPercent"` // % Processor Performance (can exceed 100 with boost)
+	OffsetSec         int     `json:"offsetSec"`
+	CPUPerfPercent    float64 `json:"cpuPerfPercent"` // % Processor Performance (can exceed 100 with boost)
 	EffectiveClockMHz float64 `json:"effectiveClockMHz"`
-	CPULoadPercent   float64 `json:"cpuLoadPercent"`
-	MemUsedPercent   float64 `json:"memUsedPercent"`
-	CommitPercent    float64 `json:"commitPercent"`
+	CPULoadPercent    float64 `json:"cpuLoadPercent"`
+	MemUsedPercent    float64 `json:"memUsedPercent"`
+	CommitPercent     float64 `json:"commitPercent"`
 	DiskActivePercent float64 `json:"diskActivePercent"`
-	DiskQueue        float64 `json:"diskQueue"`
+	DiskQueue         float64 `json:"diskQueue"`
 }
 
 type SamplingSummary struct {
@@ -202,7 +202,7 @@ type SamplingSummary struct {
 	IntervalSec          int     `json:"intervalSec"`
 	AvgEffectiveClockMHz float64 `json:"avgEffectiveClockMHz"`
 	MinEffectiveClockMHz float64 `json:"minEffectiveClockMHz"`
-	AvgFreqRatioPercent  float64 `json:"avgFreqRatioPercent"` // avg effective clock vs base clock
+	AvgFreqRatioPercent  float64 `json:"avgFreqRatioPercent"`  // avg effective clock vs base clock
 	LowFreqSamplePercent float64 `json:"lowFreqSamplePercent"` // samples below 55% of base
 	AvgCPULoadPercent    float64 `json:"avgCpuLoadPercent"`
 	MaxCPULoadPercent    float64 `json:"maxCpuLoadPercent"`
@@ -229,7 +229,7 @@ type Evidence struct {
 // AttributionCandidate is one ranked root-cause hypothesis for a constrained
 // CPU frequency finding.
 type AttributionCandidate struct {
-	CauseID    string     `json:"causeId"` // power-policy / firmware-adapter / vendor-manager / thermal / battery
+	CauseID    string     `json:"causeId"`    // power-policy / firmware-adapter / vendor-manager / thermal / battery
 	Confidence string     `json:"confidence"` // high / medium / low
 	Score      int        `json:"score"`
 	Evidence   []Evidence `json:"evidence"`
@@ -244,6 +244,28 @@ type AnalysisResult struct {
 	Attribution    []AttributionCandidate `json:"attribution"`
 	CategoryScores map[string]int         `json:"categoryScores"`
 	Actions        []OptimizationAction   `json:"actions"`
+}
+
+// AIConfig is the UI-facing AI endpoint configuration. APIKey is accepted
+// only on save and is never returned from storage; HasAPIKey reports whether
+// a DPAPI-encrypted key exists.
+type AIConfig struct {
+	BaseURL     string `json:"baseUrl"`
+	Model       string `json:"model"`
+	Enabled     bool   `json:"enabled"`
+	HasAPIKey   bool   `json:"hasApiKey"`
+	APIKey      string `json:"apiKey,omitempty"`
+	ClearAPIKey bool   `json:"clearApiKey,omitempty"`
+}
+
+// AIExplanation is produced by the optional AI explanation layer. It is
+// display-only advice; executable actions remain controlled by local rules.
+type AIExplanation struct {
+	Status  string `json:"status"` // success / disabled / missing-key / failed
+	Content string `json:"content"`
+	Detail  string `json:"detail"`
+	Model   string `json:"model"`
+	SentAt  string `json:"sentAt"`
 }
 
 // OptimizationAction is a manual, user-confirmed action recommended by the
@@ -277,12 +299,12 @@ type RollbackRecord struct {
 	PrevState     string `json:"prevState"`     // Running / Stopped (services)
 	// Startup-item fields: the StartupApproved key, value name, and previous
 	// binary value (hex; empty = value did not exist).
-	ApprovedKey   string `json:"approvedKey,omitempty"`
-	ValueName     string `json:"valueName,omitempty"`
-	PrevValueHex  string `json:"prevValueHex,omitempty"`
-	PrevExisted   bool   `json:"prevExisted,omitempty"`
-	ActionTime    string `json:"actionTime"`
-	Result        string `json:"result"` // disabled / failed
-	RolledBack    bool   `json:"rolledBack"`
-	RollbackTime  string `json:"rollbackTime"`
+	ApprovedKey  string `json:"approvedKey,omitempty"`
+	ValueName    string `json:"valueName,omitempty"`
+	PrevValueHex string `json:"prevValueHex,omitempty"`
+	PrevExisted  bool   `json:"prevExisted,omitempty"`
+	ActionTime   string `json:"actionTime"`
+	Result       string `json:"result"` // disabled / failed
+	RolledBack   bool   `json:"rolledBack"`
+	RollbackTime string `json:"rollbackTime"`
 }

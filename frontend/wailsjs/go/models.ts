@@ -20,7 +20,49 @@ export namespace main {
 }
 
 export namespace model {
-	
+
+	export class AIConfig {
+	    baseUrl: string;
+	    model: string;
+	    enabled: boolean;
+	    hasApiKey: boolean;
+	    apiKey?: string;
+	    clearApiKey?: boolean;
+
+	    static createFrom(source: any = {}) {
+	        return new AIConfig(source);
+	    }
+
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.baseUrl = source["baseUrl"];
+	        this.model = source["model"];
+	        this.enabled = source["enabled"];
+	        this.hasApiKey = source["hasApiKey"];
+	        this.apiKey = source["apiKey"];
+	        this.clearApiKey = source["clearApiKey"];
+	    }
+	}
+	export class AIExplanation {
+	    status: string;
+	    content: string;
+	    detail: string;
+	    model: string;
+	    sentAt: string;
+
+	    static createFrom(source: any = {}) {
+	        return new AIExplanation(source);
+	    }
+
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.status = source["status"];
+	        this.content = source["content"];
+	        this.detail = source["detail"];
+	        this.model = source["model"];
+	        this.sentAt = source["sentAt"];
+	    }
+	}
 	export class ActionResult {
 	    actionId: string;
 	    status: string;
@@ -674,11 +716,4 @@ export namespace model {
 	        this.rollbackTime = source["rollbackTime"];
 	    }
 	}
-	
-	
-	
-	
-	
-
 }
-

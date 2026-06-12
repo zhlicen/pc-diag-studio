@@ -13,6 +13,7 @@ import (
 
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 
+	aipkg "diagnostic-studio/internal/ai"
 	"diagnostic-studio/internal/analyzer"
 	"diagnostic-studio/internal/collector"
 	"diagnostic-studio/internal/model"
@@ -50,6 +51,29 @@ func (a *App) GetStatus() AppStatus {
 		IsAdmin: collector.IsAdmin(),
 		LogDir:  logRoot(),
 	}
+}
+
+// GetAIConfig returns the AI endpoint settings without exposing the API key.
+func (a *App) GetAIConfig() (model.AIConfig, error) {
+	return aipkg.New(dataRoot()).Load()
+}
+
+// SaveAIConfig persists endpoint settings. API keys are encrypted through
+// Windows DPAPI before being written to disk.
+func (a *App) SaveAIConfig(cfg model.AIConfig) error {
+	return aipkg.New(dataRoot()).Save(cfg)
+}
+
+// GetAISendPreview returns the exact reduced+redacted report summary that
+// would be sent to the configured AI endpoint.
+func (a *App) GetAISendPreview(report model.DiagnosticReport) (string, error) {
+	return aipkg.RedactedSummary(report)
+}
+
+// GenerateAIExplanation calls the optional OpenAI-compatible endpoint. The AI
+// can only explain and prioritize; local rules still control executable actions.
+func (a *App) GenerateAIExplanation(report model.DiagnosticReport, lang string) model.AIExplanation {
+	return aipkg.New(dataRoot()).Explain(context.Background(), report, lang)
 }
 
 // RunScan executes a full scan. mode: "quick" (15s @ 1s) or "deep" (180s @
@@ -162,6 +186,14 @@ func logRoot() string {
 		return filepath.Join(".", "log")
 	}
 	return filepath.Join(filepath.Dir(exe), "log")
+}
+
+func dataRoot() string {
+	exe, err := os.Executable()
+	if err != nil {
+		return filepath.Join(".", "data")
+	}
+	return filepath.Join(filepath.Dir(exe), "data")
 }
 
 func writeReport(r *model.DiagnosticReport) (string, error) {

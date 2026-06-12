@@ -3,7 +3,7 @@
 Five milestones. Each ends with a runnable build and a concrete acceptance test. M1 deliberately goes straight at the core value: reproducing the motivating case's correct conclusion on the IT user's own Dell machine.
 
 > **Implementation status lives in [STATUS.md](STATUS.md).** As of 2026-06-12:
-> M1 ✅ verified · M2 ✅ verified+pushed · M3 ✅ verified+pushed · M4 code-complete, build-verified+pushed, user acceptance pending · M5 not started.
+> M1 ✅ verified · M2 ✅ verified+pushed · M3 ✅ verified+pushed · M4 code-complete, build-verified+pushed, user acceptance pending · M5 AI layer code-complete/build-verified, endpoint + release acceptance pending.
 
 ## M1 — Skeleton + Frequency Root-Cause Chain ✅
 

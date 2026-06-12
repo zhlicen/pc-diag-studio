@@ -3,6 +3,7 @@ import { t, ruleText, causeText, evidenceText, actionText } from './i18n';
 import {
   GetStatus, RunScan, OpenLogFolder, RunAction,
   ListRollbackRecords, RollbackService, RollbackStartup, MarkLagNow,
+  GetAIConfig, SaveAIConfig, GetAISendPreview, GenerateAIExplanation,
 } from '../wailsjs/go/main/App';
 import { EventsOn } from '../wailsjs/runtime/runtime';
 
@@ -24,15 +25,130 @@ const state = {
   markerCount: 0,
   lastMarkerAt: -1,
   highlight: null,      // {tab, ref} from evidence click-through
+  aiConfig: null,
+  aiDraft: null,
+  aiSettingsOpen: false,
+  aiBusy: '',
+  aiResult: null,
+  aiPreview: '',
 };
 
-const TABS = ['overview', 'actions', 'processes', 'startup', 'services', 'software', 'events'];
+const TABS = ['overview', 'actions', 'processes', 'startup', 'services', 'software', 'events', 'ai'];
 const SYMPTOMS = ['symptom.boot-slow', 'symptom.always-slow', 'symptom.intermittent', 'symptom.fan-noise', 'symptom.battery-only', 'symptom.app-specific'];
 
 const app = document.getElementById('app');
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function renderMarkdown(raw) {
+  const lines = String(raw ?? '').replace(/\r\n/g, '\n').split('\n');
+  let html = '';
+  let paragraph = [];
+  let list = '';
+  let inCode = false;
+  let codeLines = [];
+
+  const renderInline = text => {
+    const codes = [];
+    let out = esc(text).replace(/`([^`]+)`/g, (_, code) => {
+      const key = codes.length;
+      codes.push(`<code>${code}</code>`);
+      return `\u0000${key}\u0000`;
+    });
+    out = out
+      .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1</a>')
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/__([^_]+)__/g, '<strong>$1</strong>')
+      .replace(/\*([^*\n]+)\*/g, '<em>$1</em>')
+      .replace(/_([^_\n]+)_/g, '<em>$1</em>');
+    return out.replace(/\u0000(\d+)\u0000/g, (_, key) => codes[Number(key)] || '');
+  };
+  const flushParagraph = () => {
+    if (!paragraph.length) return;
+    html += `<p>${renderInline(paragraph.join(' '))}</p>`;
+    paragraph = [];
+  };
+  const closeList = () => {
+    if (!list) return;
+    html += `</${list}>`;
+    list = '';
+  };
+  const openList = tag => {
+    flushParagraph();
+    if (list === tag) return;
+    closeList();
+    list = tag;
+    html += `<${tag}>`;
+  };
+
+  for (const line of lines) {
+    if (/^\s*```/.test(line)) {
+      if (inCode) {
+        html += `<pre><code>${esc(codeLines.join('\n'))}</code></pre>`;
+        codeLines = [];
+        inCode = false;
+      } else {
+        flushParagraph();
+        closeList();
+        inCode = true;
+      }
+      continue;
+    }
+
+    if (inCode) {
+      codeLines.push(line);
+      continue;
+    }
+
+    if (!line.trim()) {
+      flushParagraph();
+      closeList();
+      continue;
+    }
+
+    const heading = line.match(/^(#{1,4})\s+(.+)$/);
+    if (heading) {
+      flushParagraph();
+      closeList();
+      const level = Math.min(5, heading[1].length + 2);
+      html += `<h${level}>${renderInline(heading[2].trim())}</h${level}>`;
+      continue;
+    }
+
+    const bullet = line.match(/^\s*[-*+]\s+(.+)$/);
+    if (bullet) {
+      openList('ul');
+      html += `<li>${renderInline(bullet[1].trim())}</li>`;
+      continue;
+    }
+
+    const ordered = line.match(/^\s*\d+[.)]\s+(.+)$/);
+    if (ordered) {
+      openList('ol');
+      html += `<li>${renderInline(ordered[1].trim())}</li>`;
+      continue;
+    }
+
+    const quote = line.match(/^\s*>\s?(.+)$/);
+    if (quote) {
+      flushParagraph();
+      closeList();
+      html += `<blockquote>${renderInline(quote[1].trim())}</blockquote>`;
+      continue;
+    }
+
+    closeList();
+    paragraph.push(line.trim());
+  }
+
+  if (inCode) {
+    html += `<pre><code>${esc(codeLines.join('\n'))}</code></pre>`;
+  }
+  flushParagraph();
+  closeList();
+  return html;
 }
 
 async function init() {
@@ -44,6 +160,7 @@ async function init() {
   try {
     state.rollbackRecords = (await ListRollbackRecords()) || [];
   } catch { /* optional context */ }
+  await loadAIConfig();
   EventsOn('scan:progress', p => {
     state.progress = p;
     const bar = document.querySelector('.progress-fill');
@@ -67,6 +184,8 @@ async function beginScan(mode, symptom) {
     state.report = await RunScan(mode, symptom || '');
     state.tab = 'overview';
     state.highlight = null;
+    state.aiResult = null;
+    state.aiPreview = '';
   } catch (e) {
     state.error = String(e);
   }
@@ -84,6 +203,74 @@ async function markLag() {
       if (el) el.textContent = t(state.lang).ui.lag.marked({ count: state.markerCount, offset });
     }
   } catch { /* scan may have just finished */ }
+}
+
+async function loadAIConfig() {
+  try {
+    state.aiConfig = await GetAIConfig();
+    state.aiDraft = { ...state.aiConfig, apiKey: '', clearApiKey: false };
+  } catch (e) {
+    state.aiConfig = { enabled: false, hasApiKey: false, baseUrl: '', model: '' };
+    state.aiDraft = { ...state.aiConfig, apiKey: '', clearApiKey: false };
+    state.error = String(e);
+  }
+}
+
+function openAISettings() {
+  state.aiDraft = { ...(state.aiConfig || {}), apiKey: '', clearApiKey: false };
+  state.aiSettingsOpen = true;
+  render();
+}
+
+async function saveAISettings() {
+  const form = document.getElementById('ai-settings-form');
+  if (!form) return;
+  const data = new FormData(form);
+  const draft = {
+    baseUrl: String(data.get('baseUrl') || '').trim(),
+    model: String(data.get('model') || '').trim(),
+    enabled: data.get('enabled') === 'on',
+    apiKey: String(data.get('apiKey') || '').trim(),
+    clearApiKey: data.get('clearApiKey') === 'on',
+  };
+  state.aiBusy = 'settings';
+  render();
+  try {
+    await SaveAIConfig(draft);
+    await loadAIConfig();
+    state.aiSettingsOpen = false;
+  } catch (e) {
+    state.error = String(e);
+  }
+  state.aiBusy = '';
+  render();
+}
+
+async function generateAI() {
+  if (!state.report || state.aiBusy) return;
+  state.aiBusy = 'generate';
+  state.aiResult = null;
+  render();
+  try {
+    state.aiResult = await GenerateAIExplanation(state.report, state.lang);
+  } catch (e) {
+    state.aiResult = { status: 'failed', detail: String(e), content: '' };
+  }
+  state.aiBusy = '';
+  render();
+}
+
+async function loadAIPreview() {
+  if (!state.report || state.aiBusy) return;
+  state.aiBusy = 'preview';
+  render();
+  try {
+    state.aiPreview = await GetAISendPreview(state.report);
+  } catch (e) {
+    state.aiPreview = String(e);
+  }
+  state.aiBusy = '';
+  render();
 }
 
 function setLang(lang) {
@@ -397,12 +584,77 @@ function renderTab(ui, r, a) {
           esc(e.provider), e.eventId, esc(e.message),
         ]),
         ui.empty)}</section>`;
+    case 'ai':
+      return renderAI(ui, r);
     default:
       return '';
   }
 }
 
+function renderAI(ui, r) {
+  const cfg = state.aiConfig || {};
+  const ai = ui.ai;
+  const status = cfg.enabled
+    ? (cfg.hasApiKey ? ai.statusReady : ai.statusMissingKey)
+    : ai.statusDisabled;
+  const result = state.aiResult;
+  return `
+    <section class="panel">
+      <div class="ai-head">
+        <div>
+          <div class="block-title">${ai.title}</div>
+          <p class="hint">${ai.subtitle}</p>
+        </div>
+        <button class="btn" id="ai-settings-inline">${ai.settings}</button>
+      </div>
+      <div class="ai-config-line">
+        <span class="badge ${cfg.enabled && cfg.hasApiKey ? 'badge-ok' : 'badge-low'}">${esc(status)}</span>
+        <span class="mono">${esc(cfg.baseUrl || '')}</span>
+        <span class="mono">${esc(cfg.model || '')}</span>
+      </div>
+      <div class="ai-actions">
+        <button class="btn btn-primary" id="ai-generate" ${state.aiBusy || !r ? 'disabled' : ''}>${state.aiBusy === 'generate' ? ai.generating : ai.generate}</button>
+        <button class="btn" id="ai-preview" ${state.aiBusy || !r ? 'disabled' : ''}>${state.aiBusy === 'preview' ? ai.loadingPreview : ai.preview}</button>
+      </div>
+      ${result ? renderAIResult(ai, result) : `<p class="hint">${ai.empty}</p>`}
+    </section>
+    ${state.aiPreview ? `<section class="panel"><div class="block-title">${ai.previewTitle}</div><pre class="ai-preview">${esc(state.aiPreview)}</pre></section>` : ''}`;
+}
+
+function renderAIResult(ai, result) {
+  if (result.status === 'success') {
+    return `
+      <div class="ai-result">
+        <div class="ai-result-meta">${esc(result.model || '')}${result.sentAt ? ` · ${esc(result.sentAt)}` : ''}</div>
+        <div class="ai-content">${renderMarkdown(result.content)}</div>
+      </div>`;
+  }
+  const message = ai.statusText[result.status] || result.detail || result.status;
+  return `<div class="ai-result ai-result-muted"><b>${esc(message)}</b>${result.detail ? `<p>${esc(result.detail)}</p>` : ''}</div>`;
+}
+
 function renderModals(ui) {
+  if (state.aiSettingsOpen) {
+    const cfg = state.aiDraft || {};
+    return `
+      <div class="modal-overlay">
+        <div class="modal">
+          <div class="modal-title">${ui.ai.settings}</div>
+          <form id="ai-settings-form" class="form-grid">
+            <label class="check-row"><input type="checkbox" name="enabled" ${cfg.enabled ? 'checked' : ''}> ${ui.ai.enabled}</label>
+            <label>${ui.ai.baseUrl}<input name="baseUrl" value="${esc(cfg.baseUrl || '')}" placeholder="https://api.openai.com/v1"></label>
+            <label>${ui.ai.model}<input name="model" value="${esc(cfg.model || '')}" placeholder="gpt-5.5"></label>
+            <label>${ui.ai.apiKey}<input type="password" name="apiKey" placeholder="${cfg.hasApiKey ? ui.ai.keepKey : ui.ai.enterKey}"></label>
+            <label class="check-row"><input type="checkbox" name="clearApiKey"> ${ui.ai.clearKey}</label>
+          </form>
+          <p class="hint">${ui.ai.safety}</p>
+          <div class="modal-buttons">
+            <button class="btn" id="ai-settings-cancel">${ui.act.cancel}</button>
+            <button class="btn btn-primary" id="ai-settings-save" ${state.aiBusy === 'settings' ? 'disabled' : ''}>${state.aiBusy === 'settings' ? ui.ai.saving : ui.ai.save}</button>
+          </div>
+        </div>
+      </div>`;
+  }
   if (state.symptomPick) {
     return `
       <div class="modal-overlay">
@@ -459,6 +711,7 @@ function render() {
           <option value="zh" ${state.lang === 'zh' ? 'selected' : ''}>中文</option>
           <option value="en" ${state.lang === 'en' ? 'selected' : ''}>English</option>
         </select>
+        <button id="ai-settings" class="btn">${ui.ai.settings}</button>
         <button id="open-log" class="btn">${ui.openLog}</button>
         <button id="scan-quick" class="btn" ${state.scanning ? 'disabled' : ''}>${ui.quickScan}</button>
         <button id="scan-deep" class="btn btn-primary" ${state.scanning ? 'disabled' : ''}>${ui.deepScan}</button>
@@ -538,6 +791,12 @@ function render() {
 
 function bindEvents() {
   document.getElementById('lang-select')?.addEventListener('change', e => setLang(e.target.value));
+  document.getElementById('ai-settings')?.addEventListener('click', openAISettings);
+  document.getElementById('ai-settings-inline')?.addEventListener('click', openAISettings);
+  document.getElementById('ai-settings-cancel')?.addEventListener('click', () => { state.aiSettingsOpen = false; render(); });
+  document.getElementById('ai-settings-save')?.addEventListener('click', saveAISettings);
+  document.getElementById('ai-generate')?.addEventListener('click', generateAI);
+  document.getElementById('ai-preview')?.addEventListener('click', loadAIPreview);
   document.getElementById('open-log')?.addEventListener('click', () => OpenLogFolder());
   document.getElementById('scan-quick')?.addEventListener('click', () => { state.symptomPick = 'quick'; render(); });
   document.getElementById('scan-deep')?.addEventListener('click', () => { state.symptomPick = 'deep'; render(); });
