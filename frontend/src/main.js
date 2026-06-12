@@ -82,8 +82,25 @@ function renderMarkdown(raw) {
     list = tag;
     html += `<${tag}>`;
   };
+  const splitTableRow = line => {
+    const trimmed = line.trim().replace(/^\|/, '').replace(/\|$/, '');
+    return trimmed.split('|').map(cell => cell.trim());
+  };
+  const isTableRow = line => /^\s*\|.+\|\s*$/.test(line);
+  const isTableDivider = line => {
+    if (!isTableRow(line)) return false;
+    const cells = splitTableRow(line);
+    return cells.length > 1 && cells.every(cell => /^:?-{3,}:?$/.test(cell.replace(/\s/g, '')));
+  };
+  const renderTable = rows => {
+    const [head, ...body] = rows;
+    const headHTML = head.map(cell => `<th>${renderInline(cell)}</th>`).join('');
+    const bodyHTML = body.map(row => `<tr>${row.map(cell => `<td>${renderInline(cell)}</td>`).join('')}</tr>`).join('');
+    return `<div class="ai-table-wrap"><table><thead><tr>${headHTML}</tr></thead><tbody>${bodyHTML}</tbody></table></div>`;
+  };
 
-  for (const line of lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     if (/^\s*```/.test(line)) {
       if (inCode) {
         html += `<pre><code>${esc(codeLines.join('\n'))}</code></pre>`;
@@ -104,7 +121,26 @@ function renderMarkdown(raw) {
 
     if (!line.trim()) {
       flushParagraph();
+      continue;
+    }
+
+    if (/^\s*([-*_])(?:\s*\1){2,}\s*$/.test(line)) {
+      flushParagraph();
       closeList();
+      html += '<hr>';
+      continue;
+    }
+
+    if (isTableRow(line) && i + 1 < lines.length && isTableDivider(lines[i + 1])) {
+      flushParagraph();
+      closeList();
+      const rows = [splitTableRow(line)];
+      i += 2;
+      for (; i < lines.length && isTableRow(lines[i]); i++) {
+        rows.push(splitTableRow(lines[i]));
+      }
+      i -= 1;
+      html += renderTable(rows);
       continue;
     }
 

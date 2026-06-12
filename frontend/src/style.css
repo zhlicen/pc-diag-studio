@@ -368,8 +368,14 @@ html, body {
 .ai-content ul,
 .ai-content ol,
 .ai-content blockquote,
-.ai-content pre {
+.ai-content pre,
+.ai-content .ai-table-wrap {
   margin: 8px 0;
+}
+.ai-content hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 12px 0;
 }
 .ai-content h3,
 .ai-content h4,
@@ -407,6 +413,26 @@ html, body {
   padding-left: 10px;
   border-left: 3px solid var(--border);
   color: var(--text-dim);
+}
+.ai-table-wrap {
+  overflow-x: auto;
+}
+.ai-content table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.ai-content th,
+.ai-content td {
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  vertical-align: top;
+}
+.ai-content th {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
 }
 .ai-content a {
   color: var(--teal-dark);
