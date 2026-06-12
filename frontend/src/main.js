@@ -1,6 +1,9 @@
 import './style.css';
 import { t, ruleText, causeText, evidenceText, actionText } from './i18n';
-import { GetStatus, RunScan, OpenLogFolder, RunAction, ListRollbackRecords, RollbackService } from '../wailsjs/go/main/App';
+import {
+  GetStatus, RunScan, OpenLogFolder, RunAction,
+  ListRollbackRecords, RollbackService, RollbackStartup, MarkLagNow,
+} from '../wailsjs/go/main/App';
 import { EventsOn } from '../wailsjs/runtime/runtime';
 
 const LANG_KEY = 'diagnostic-studio-lang';
@@ -14,12 +17,17 @@ const state = {
   error: '',
   tab: 'overview',
   rollbackRecords: [],
-  actionResults: {}, // action key -> ActionResult
-  actionBusy: '',    // action key currently executing
-  confirm: null,     // {key, action} awaiting user confirmation
+  actionResults: {},
+  actionBusy: '',
+  confirm: null,        // {key, action} awaiting confirmation
+  symptomPick: null,    // scan mode awaiting symptom selection
+  markerCount: 0,
+  lastMarkerAt: -1,
+  highlight: null,      // {tab, ref} from evidence click-through
 };
 
 const TABS = ['overview', 'actions', 'processes', 'startup', 'services', 'software', 'events'];
+const SYMPTOMS = ['symptom.boot-slow', 'symptom.always-slow', 'symptom.intermittent', 'symptom.fan-noise', 'symptom.battery-only', 'symptom.app-specific'];
 
 const app = document.getElementById('app');
 
@@ -35,7 +43,7 @@ async function init() {
   }
   try {
     state.rollbackRecords = (await ListRollbackRecords()) || [];
-  } catch { /* records are optional context */ }
+  } catch { /* optional context */ }
   EventsOn('scan:progress', p => {
     state.progress = p;
     const bar = document.querySelector('.progress-fill');
@@ -46,20 +54,36 @@ async function init() {
   render();
 }
 
-async function startScan(mode) {
+async function beginScan(mode, symptom) {
   if (state.scanning) return;
   state.scanning = true;
+  state.symptomPick = null;
   state.error = '';
+  state.markerCount = 0;
+  state.lastMarkerAt = -1;
   state.progress = { done: 0, total: mode === 'deep' ? 36 : 15 };
   render();
   try {
-    state.report = await RunScan(mode);
+    state.report = await RunScan(mode, symptom || '');
     state.tab = 'overview';
+    state.highlight = null;
   } catch (e) {
     state.error = String(e);
   }
   state.scanning = false;
   render();
+}
+
+async function markLag() {
+  try {
+    const offset = await MarkLagNow();
+    if (offset >= 0) {
+      state.markerCount += 1;
+      state.lastMarkerAt = offset;
+      const el = document.querySelector('.lag-feedback');
+      if (el) el.textContent = t(state.lang).ui.lag.marked({ count: state.markerCount, offset });
+    }
+  } catch { /* scan may have just finished */ }
 }
 
 function setLang(lang) {
@@ -72,8 +96,24 @@ function scoreClass(severity) {
   return { good: 'score-good', warning: 'score-warning', critical: 'score-critical' }[severity] || 'score-good';
 }
 
-// Generic polyline sparkline over sample values.
-function sparkline(values, { max, lines = [] } = {}) {
+function kbText(kbId) {
+  return t(state.lang).ui.kb[kbId] || null;
+}
+
+// Evidence list with click-through links (params._tab/_ref set by analyzer).
+function evidenceList(evs) {
+  if (!evs || !evs.length) return '';
+  return `<ul class="evidence">${evs.map(ev => {
+    const text = esc(evidenceText(state.lang, ev));
+    const tab = ev.params?._tab;
+    const ref = ev.params?._ref;
+    return tab
+      ? `<li class="ev-link" data-tab="${esc(tab)}" data-ref="${esc(ref || '')}">${text}</li>`
+      : `<li>${text}</li>`;
+  }).join('')}</ul>`;
+}
+
+function sparkline(values, { max, lines = [], markers = [], lastOffset = 0 } = {}) {
   if (!values || values.length < 2) return '';
   const w = 560, h = 110, pad = 6;
   const top = (max ?? Math.max(...values)) * 1.05 || 1;
@@ -86,20 +126,30 @@ function sparkline(values, { max, lines = [] } = {}) {
     const y = h - pad - (l.value / top) * (h - pad * 2);
     return `<line x1="${pad}" y1="${y}" x2="${w - pad}" y2="${y}" class="${l.cls}"/>`;
   }).join('');
+  const marks = (lastOffset > 0 ? markers : []).map(m => {
+    const x = pad + (Math.min(m, lastOffset) / lastOffset) * (w - pad * 2);
+    return `<line x1="${x.toFixed(1)}" y1="${pad}" x2="${x.toFixed(1)}" y2="${h - pad}" class="spark-marker"/>`;
+  }).join('');
   return `
     <svg viewBox="0 0 ${w} ${h}" class="spark" preserveAspectRatio="none">
-      ${guides}
+      ${guides}${marks}
       <polyline points="${pts}" class="spark-line"/>
     </svg>`;
 }
 
-function table(headers, rows, emptyText) {
+// rows: array of cell arrays; refs: optional per-row ref id for highlight.
+function table(headers, rows, emptyText, refs) {
   if (!rows || !rows.length) return `<p class="hint">${esc(emptyText)}</p>`;
+  const hl = state.highlight;
   return `
     <div class="table-wrap">
       <table class="data-table">
         <thead><tr>${headers.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead>
-        <tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>
+        <tbody>${rows.map((r, i) => {
+          const ref = refs ? refs[i] : '';
+          const cls = hl && ref && hl.ref === ref ? ' class="row-flag"' : '';
+          return `<tr${cls}>${r.map(c => `<td>${c}</td>`).join('')}</tr>`;
+        }).join('')}</tbody>
       </table>
     </div>`;
 }
@@ -116,9 +166,7 @@ function renderOverview(ui, r, a) {
               <span class="badge badge-${c.confidence}">${ui.confidence[c.confidence] || c.confidence}</span>
             </div>
             <p class="cause-desc">${esc(ct.desc)}</p>
-            <ul class="evidence">
-              ${c.evidence.map(ev => `<li>${esc(evidenceText(state.lang, ev))}</li>`).join('')}
-            </ul>
+            ${evidenceList(c.evidence)}
           </div>`;
       }).join('')
     : (a.primaryRuleId === 'rule.cpu-freq-constrained' ? `<p class="hint">${ui.attributionEmpty}</p>` : '');
@@ -132,17 +180,18 @@ function renderOverview(ui, r, a) {
           <span class="finding-title">${esc(ft.title)}</span>
         </div>
         <p class="finding-desc">${esc(ft.desc)}</p>
-        <ul class="evidence">
-          ${(f.evidence || []).map(ev => `<li>${esc(evidenceText(state.lang, ev))}</li>`).join('')}
-        </ul>
+        ${evidenceList(f.evidence)}
       </div>`;
   }).join('');
 
   const samples = r.samples || [];
   const base = r.cpu.baseClockMHz;
+  const lastOffset = samples.length ? samples[samples.length - 1].offsetSec : 0;
   const freqChart = sparkline(samples.map(s => s.effectiveClockMHz), {
     max: Math.max(base, ...samples.map(s => s.effectiveClockMHz)),
     lines: [{ value: base, cls: 'spark-base' }, { value: base * 0.55, cls: 'spark-low' }],
+    markers: r.lagMarkers || [],
+    lastOffset,
   });
   const miniCharts = `
     <div class="mini-charts">
@@ -170,7 +219,7 @@ function renderOverview(ui, r, a) {
 }
 
 function actionKey(act, i) {
-  return `${act.actionId}:${act.params?.serviceName || ''}:${i}`;
+  return `${act.actionId}:${act.params?.serviceName || act.params?.name || ''}:${i}`;
 }
 
 async function executeAction(key, act) {
@@ -190,17 +239,31 @@ async function executeAction(key, act) {
 }
 
 async function executeRollback(rec) {
-  state.actionBusy = `rollback:${rec.serviceName}:${rec.actionTime}`;
+  const rbKey = `rollback:${rec.serviceName}:${rec.actionTime}`;
+  state.actionBusy = rbKey;
   render();
   try {
-    const res = await RollbackService(rec.serviceName, rec.actionTime);
-    state.actionResults[state.actionBusy] = res;
+    const res = rec.kind === 'startup'
+      ? await RollbackStartup(rec.serviceName, rec.actionTime)
+      : await RollbackService(rec.serviceName, rec.actionTime);
+    state.actionResults[rbKey] = res;
     state.rollbackRecords = (await ListRollbackRecords()) || [];
   } catch (e) {
-    state.actionResults[state.actionBusy] = { status: 'failed', detail: String(e) };
+    state.actionResults[rbKey] = { status: 'failed', detail: String(e) };
   }
   state.actionBusy = '';
   render();
+}
+
+function kbBlock(kbId) {
+  const kb = kbText(kbId);
+  if (!kb) return '';
+  return `
+    <div class="kb-block">
+      <p>${esc(kb.what)}</p>
+      <p>${esc(kb.ifDisabled)}</p>
+      ${kb.caution ? `<p class="kb-caution">${esc(kb.caution)}</p>` : ''}
+    </div>`;
 }
 
 function renderActions(ui, r, a) {
@@ -230,6 +293,7 @@ function renderActions(ui, r, a) {
           ${button}
         </div>
         <p class="action-desc">${esc(at.desc)}${irreversible ? ` <b>${ui.act.irreversible}</b>` : ''}</p>
+        ${act.params?.kbId ? kbBlock(act.params.kbId) : ''}
       </div>`;
   }).join('');
 
@@ -242,6 +306,7 @@ function renderActions(ui, r, a) {
       <div class="action-card">
         <div class="action-head">
           <span class="action-title">${esc(rec.displayName || rec.serviceName)}</span>
+          ${rec.kind === 'startup' ? `<span class="badge badge-low">${ui.tabs.startup}</span>` : ''}
           ${rec.rolledBack
             ? `<span class="badge badge-ok">${ui.act.rolledBack} ${esc(rec.rollbackTime)}</span>`
             : (canRestore
@@ -249,31 +314,11 @@ function renderActions(ui, r, a) {
               : `<span class="badge badge-err">${esc(rec.result)}</span>`)}
         </div>
         <p class="action-desc">
-          ${esc(rec.serviceName)} · ${ui.act.recPrev}: ${esc(rec.prevStartMode)}/${esc(rec.prevState)} · ${esc(rec.actionTime)}
+          ${esc(rec.serviceName)}${rec.kind !== 'startup' ? ` · ${ui.act.recPrev}: ${esc(rec.prevStartMode)}/${esc(rec.prevState)}` : ''} · ${esc(rec.actionTime)}
           ${res && res.status === 'failed' ? `<br><span class="error">${esc(res.detail)}</span>` : ''}
         </p>
       </div>`;
   }).join('');
-
-  const confirmModal = state.confirm ? (() => {
-    const at = actionText(state.lang, state.confirm.action.actionId, state.confirm.action.params);
-    const irreversible = state.confirm.action.actionId === 'action.clean-temp';
-    return `
-      <div class="modal-overlay">
-        <div class="modal">
-          <div class="modal-title">${ui.act.confirmTitle}</div>
-          <div class="action-head" style="margin:8px 0 4px">
-            <span class="badge risk-${state.confirm.action.risk}">${ui.act.risk[state.confirm.action.risk]}</span>
-            <span class="action-title">${esc(at.title)}</span>
-          </div>
-          <p class="action-desc">${esc(at.desc)}${irreversible ? ` <b>${ui.act.irreversible}</b>` : ''}</p>
-          <div class="modal-buttons">
-            <button class="btn" id="confirm-cancel">${ui.act.cancel}</button>
-            <button class="btn btn-primary" id="confirm-run">${ui.act.confirm}</button>
-          </div>
-        </div>
-      </div>`;
-  })() : '';
 
   return `
     <section class="panel">
@@ -283,8 +328,7 @@ function renderActions(ui, r, a) {
       <div class="block-title">${ui.act.rollbackTitle}</div>
       <p class="hint" style="margin-bottom:8px">${ui.act.rollbackHint}</p>
       ${records || `<p class="hint">${ui.act.noRollback}</p>`}
-    </section>
-    ${confirmModal}`;
+    </section>`;
 }
 
 function renderTab(ui, r, a) {
@@ -297,20 +341,28 @@ function renderTab(ui, r, a) {
       return `<section class="panel">${table(
         [ui.th.procName, ui.th.pid, ui.th.cpu, ui.th.mem],
         (r.processes || []).map(p => [esc(p.name), p.pid, `${p.cpuPercent.toFixed(1)}%`, `${p.workingSetMB.toFixed(0)} MB`]),
-        ui.empty)}</section>`;
+        ui.empty,
+        (r.processes || []).map(p => p.name))}</section>`;
     case 'startup': {
-      const items = table(
-        [ui.th.name, ui.th.command, ui.th.location, ui.th.reviewWorthy],
-        (r.startupItems || []).map(s => [
-          esc(s.name), `<span class="mono">${esc(s.command)}</span>`, esc(s.location),
-          s.reviewWorthy ? `<span class="badge badge-warn">${ui.yes}</span>` : '',
-        ]),
-        ui.empty);
+      const items = r.startupItems || [];
+      const itemsTable = table(
+        [ui.th.name, ui.th.command, ui.th.state, ''],
+        items.map(s => {
+          const stateBadge = s.disabled
+            ? `<span class="badge badge-low">${ui.startupState.disabled}</span>`
+            : `<span class="badge badge-ok">${ui.startupState.enabled}</span>`;
+          const btn = (!s.disabled && s.canToggle)
+            ? `<button class="btn btn-sm startup-disable" data-name="${esc(s.name)}" data-location="${esc(s.location)}" data-command="${esc(s.command)}" ${state.actionBusy ? 'disabled' : ''}>${ui.disableBtn}</button>`
+            : '';
+          return [esc(s.name), `<span class="mono">${esc(s.command)}</span>`, stateBadge, btn];
+        }),
+        ui.empty,
+        items.map(s => s.name));
       const tasks = table(
         [ui.th.name, ui.th.taskPath, ui.th.state],
         (r.scheduledTasks || []).map(tk => [esc(tk.name), `<span class="mono">${esc(tk.path)}</span>`, esc(tk.state)]),
         ui.empty);
-      return `<section class="panel">${items}</section>
+      return `<section class="panel">${itemsTable}</section>
               <section class="panel"><div class="block-title">${ui.startupTasksTitle}</div>${tasks}</section>`;
     }
     case 'services':
@@ -321,7 +373,8 @@ function renderTab(ui, r, a) {
           `<span class="badge ${s.state === 'Running' ? 'badge-ok' : 'badge-low'}">${esc(s.state)}</span>`,
           esc(s.startMode), `<span class="mono">${esc(s.vendorHint)}</span>`,
         ]),
-        ui.empty)}</section>`;
+        ui.empty,
+        (r.vendorServices || []).map(s => s.name))}</section>`;
     case 'software':
       return `<section class="panel">${table(
         [ui.th.name, ui.th.version, ui.th.publisher, ui.th.category],
@@ -329,7 +382,8 @@ function renderTab(ui, r, a) {
           esc(x.name), esc(x.version), esc(x.publisher),
           x.category ? `<span class="badge badge-warn">${ui.utilityCategories[x.category] || esc(x.category)}</span>` : '',
         ]),
-        ui.empty)}</section>`;
+        ui.empty,
+        (r.installedApps || []).map(x => x.name))}</section>`;
     case 'events':
       return `<section class="panel">${table(
         [ui.th.time, ui.th.level, ui.th.provider, ui.th.eventId, ui.th.message],
@@ -342,6 +396,46 @@ function renderTab(ui, r, a) {
     default:
       return '';
   }
+}
+
+function renderModals(ui) {
+  if (state.symptomPick) {
+    return `
+      <div class="modal-overlay">
+        <div class="modal">
+          <div class="modal-title">${ui.symptom.title}</div>
+          <p class="hint" style="margin:6px 0 10px">${ui.symptom.hint}</p>
+          <div class="symptom-grid">
+            ${SYMPTOMS.map(s => `<button class="btn symptom-btn" data-symptom="${s}">${ui.symptom[s]}</button>`).join('')}
+          </div>
+          <div class="modal-buttons">
+            <button class="btn" id="symptom-cancel">${ui.act.cancel}</button>
+            <button class="btn btn-primary" id="symptom-skip">${ui.symptom.skip}</button>
+          </div>
+        </div>
+      </div>`;
+  }
+  if (state.confirm) {
+    const at = actionText(state.lang, state.confirm.action.actionId, state.confirm.action.params);
+    const irreversible = state.confirm.action.actionId === 'action.clean-temp';
+    return `
+      <div class="modal-overlay">
+        <div class="modal">
+          <div class="modal-title">${ui.act.confirmTitle}</div>
+          <div class="action-head" style="margin:8px 0 4px">
+            <span class="badge risk-${state.confirm.action.risk}">${ui.act.risk[state.confirm.action.risk]}</span>
+            <span class="action-title">${esc(at.title)}</span>
+          </div>
+          <p class="action-desc">${esc(at.desc)}${irreversible ? ` <b>${ui.act.irreversible}</b>` : ''}</p>
+          ${state.confirm.action.params?.kbId ? kbBlock(state.confirm.action.params.kbId) : ''}
+          <div class="modal-buttons">
+            <button class="btn" id="confirm-cancel">${ui.act.cancel}</button>
+            <button class="btn btn-primary" id="confirm-run">${ui.act.confirm}</button>
+          </div>
+        </div>
+      </div>`;
+  }
+  return '';
 }
 
 function render() {
@@ -374,6 +468,9 @@ function render() {
         <div class="scan-title">${ui.scanning}…</div>
         <div class="progress"><div class="progress-fill" style="width:${(state.progress.done / state.progress.total) * 100}%"></div></div>
         <div class="progress-label">${state.progress.done} / ${state.progress.total}</div>
+        <button id="lag-button" class="btn lag-button">${ui.lag.button}</button>
+        <div class="lag-feedback hint">${state.markerCount > 0 ? ui.lag.marked({ count: state.markerCount, offset: state.lastMarkerAt }) : ''}</div>
+        <p class="hint">${esc(ui.lag.hint)}</p>
         <p class="hint">${esc(ui.scanHint)}</p>
       </div>`;
   } else if (!r) {
@@ -388,6 +485,9 @@ function render() {
       ? `<span class="badge badge-ok">${ui.admin}</span>`
       : `<span class="badge badge-warn">${ui.notAdmin}</span>`;
     const s = r.sampling || {};
+    const symptomChip = r.symptom
+      ? `<div class="symptom-chip">${ui.symptom[r.symptom] || r.symptom}</div>`
+      : '';
 
     const tabBar = `
       <nav class="tabbar">
@@ -403,6 +503,7 @@ function render() {
           </div>
           <div class="primary-block">
             <div class="block-title">${ui.primary}</div>
+            ${symptomChip}
             <div class="primary-title">${esc(primary.title)}</div>
             <p class="primary-desc">${esc(primary.desc)}</p>
           </div>
@@ -427,16 +528,35 @@ function render() {
       </div>`;
   }
 
-  app.innerHTML = header + `<div class="content">${body}</div>`;
+  app.innerHTML = header + `<div class="content">${body}</div>` + renderModals(ui);
+  bindEvents();
+}
 
+function bindEvents() {
   document.getElementById('lang-select')?.addEventListener('change', e => setLang(e.target.value));
   document.getElementById('open-log')?.addEventListener('click', () => OpenLogFolder());
-  document.getElementById('scan-quick')?.addEventListener('click', () => startScan('quick'));
-  document.getElementById('scan-deep')?.addEventListener('click', () => startScan('deep'));
+  document.getElementById('scan-quick')?.addEventListener('click', () => { state.symptomPick = 'quick'; render(); });
+  document.getElementById('scan-deep')?.addEventListener('click', () => { state.symptomPick = 'deep'; render(); });
+  document.getElementById('lag-button')?.addEventListener('click', markLag);
+
+  document.querySelectorAll('.symptom-btn').forEach(el => el.addEventListener('click', () => {
+    beginScan(state.symptomPick, el.dataset.symptom);
+  }));
+  document.getElementById('symptom-skip')?.addEventListener('click', () => beginScan(state.symptomPick, ''));
+  document.getElementById('symptom-cancel')?.addEventListener('click', () => { state.symptomPick = null; render(); });
+
   document.querySelectorAll('.tab').forEach(el => el.addEventListener('click', () => {
     state.tab = el.dataset.tab;
+    state.highlight = null;
     render();
   }));
+  document.querySelectorAll('.ev-link').forEach(el => el.addEventListener('click', () => {
+    state.tab = el.dataset.tab;
+    state.highlight = { tab: el.dataset.tab, ref: el.dataset.ref };
+    render();
+    document.querySelector('.row-flag')?.scrollIntoView({ block: 'center' });
+  }));
+
   document.querySelectorAll('.act-run').forEach(el => el.addEventListener('click', () => {
     const acts = state.report?.analysis?.actions || [];
     const act = acts[Number(el.dataset.idx)];
@@ -444,6 +564,15 @@ function render() {
       state.confirm = { key: el.dataset.key, action: act };
       render();
     }
+  }));
+  document.querySelectorAll('.startup-disable').forEach(el => el.addEventListener('click', () => {
+    const act = {
+      actionId: 'action.disable-startup',
+      risk: 'review',
+      params: { name: el.dataset.name, location: el.dataset.location, command: el.dataset.command },
+    };
+    state.confirm = { key: `startup:${el.dataset.name}`, action: act };
+    render();
   }));
   document.querySelectorAll('.act-rollback').forEach(el => el.addEventListener('click', () => {
     const rec = (state.rollbackRecords || []).find(x => x.serviceName === el.dataset.svc && x.actionTime === el.dataset.time);

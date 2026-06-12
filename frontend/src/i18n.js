@@ -33,6 +33,35 @@ export const COPY = {
       memUsed: '内存占用',
       diskActive: '磁盘活动',
       tabs: { overview: '概览', actions: '优化', processes: '进程', startup: '启动项', services: '服务', software: '软件', events: '事件' },
+      symptom: {
+        title: '这台电脑哪里让你觉得卡?',
+        hint: '选择最接近的症状,诊断会围绕它取证;不确定可以跳过。',
+        skip: '跳过,直接扫描',
+        'symptom.boot-slow': '开机/登录很慢',
+        'symptom.always-slow': '全程都卡',
+        'symptom.intermittent': '间歇性卡死',
+        'symptom.fan-noise': '风扇狂转而且卡',
+        'symptom.battery-only': '用电池时才卡',
+        'symptom.app-specific': '某个软件特别卡',
+      },
+      lag: {
+        button: '现在卡了!',
+        marked: p => `已记录第 ${p.count} 次卡顿(第 ${p.offset} 秒)`,
+        hint: '感觉卡的瞬间点一下,分析时会对照那一刻的采样数据',
+      },
+      kb: {
+        'kb.dell-optimizer': { what: 'Dell Optimizer:戴尔的 AI 性能调优组件,会动态接管 CPU/电源调度策略。', ifDisabled: '禁用后失去戴尔的自适应性能优化,改用 Windows 默认调度——这正是很多降频问题的解法。', caution: '' },
+        'kb.dell-power-manager': { what: 'Dell Power Manager:戴尔电池与热管理服务。', ifDisabled: '禁用后自定义充电策略、热模式设置不再生效,充电与散热回到固件默认。', caution: '如果你依赖定制充电上限(延长电池寿命),禁用前记下当前设置。' },
+        'kb.intel-dtt': { what: 'Intel 动态调优(DTT/DPTF):根据温度与功率动态调节 CPU 性能。', ifDisabled: '禁用后失去 Intel 平台级功率调节,调度回到 Windows 默认;部分轻薄本可能温度略升。', caution: '' },
+        'kb.supportassist-remediation': { what: 'Dell SupportAssist 自动修复服务:后台执行戴尔下发的诊断与修复任务。', ifDisabled: '禁用后 SupportAssist 的自动修复不再运行,手动诊断仍可用,系统稳定性不受影响。', caution: '' },
+        'kb.supportassist': { what: 'Dell SupportAssist:戴尔支持助手,定期扫描硬件并上报。', ifDisabled: '禁用后失去自动硬件扫描与保修提醒;需要时可手动打开 SupportAssist。', caution: '' },
+        'kb.dell-techhub': { what: 'Dell TechHub:戴尔统一后台框架,为戴尔应用提供本地服务。', ifDisabled: '禁用后部分戴尔应用(如 Dell Display Manager 新版)可能功能受限。', caution: '' },
+        'kb.dell-update': { what: 'Dell 客户端管理/更新服务:负责戴尔驱动与固件的自动更新。', ifDisabled: '禁用后驱动不再自动更新;建议 IT 定期手动跑 Dell Command Update。', caution: '机队环境如依赖自动驱动更新策略,请保留。' },
+        'kb.dell-digital-delivery': { what: 'Dell Digital Delivery:出厂预装软件的下载分发服务。', ifDisabled: '禁用后不再自动下载预装软件,几乎无副作用。', caution: '' },
+        'kb.intel-dsa': { what: 'Intel 驱动与支持助手(DSA):Intel 驱动的检测与更新服务。', ifDisabled: '禁用后 Intel 驱动不自动检查更新;可手动访问 Intel 官网更新。', caution: '' },
+        'kb.intel-telemetry': { what: 'Intel 遥测/使用情况上报服务:收集系统使用数据上报给 Intel。', ifDisabled: '禁用后停止数据上报,无功能损失。', caution: '' },
+        'kb.driver-core': { what: '驱动核心服务:音频/显卡/存储/管理引擎等功能性驱动组件。', ifDisabled: '禁用会直接影响对应硬件功能,本工具不提供禁用按钮。', caution: '' },
+      },
       act: {
         run: '执行', confirmTitle: '确认执行此操作?', confirm: '确认执行', cancel: '取消',
         running: '执行中…', success: '执行成功', failed: '执行失败',
@@ -59,6 +88,8 @@ export const COPY = {
       },
       yes: '是',
       empty: '无数据',
+      startupState: { enabled: '已启用', disabled: '已禁用' },
+      disableBtn: '禁用',
       startupTasksTitle: '计划任务(非系统)',
       utilityCategories: { browser: '浏览器', archive: '压缩工具', assistant: '助手/管家类' },
     },
@@ -97,6 +128,14 @@ export const COPY = {
         title: '同类工具软件重复安装',
         desc: p => `检测到 ${p.count} 款同类软件(${p.category})。重复安装通常意味着重复的后台更新器和启动项。`,
       },
+      'rule.adapter-underpowered': {
+        title: '电源适配器供电不足',
+        desc: p => `插着电源但电池仍在放电(最高 ${(p.maxDischargeMW / 1000).toFixed(1)} W)——适配器功率不足、老化或未被识别。更换原装足瓦数充电器通常立竿见影。`,
+      },
+      'rule.lag-moments': {
+        title: '你标记的卡顿时刻',
+        desc: p => `你在扫描中标记了 ${p.count} 次卡顿,每次对应时刻的采样数据见证据。`,
+      },
       'rule.no-major-issue': {
         title: '未发现明显瓶颈',
         desc: () => '本次采样窗口内 CPU 频率、内存、磁盘均未触发规则。如果卡顿是间歇性的,请在卡顿发生时运行深度扫描。',
@@ -126,6 +165,10 @@ export const COPY = {
         title: p => `建议卸载:${p.displayName}`,
         desc: () => '如确认不需要该组件,请在 设置 > 应用 > 安装的应用 中手动卸载。本工具不会自动卸载任何软件。',
       },
+      'action.disable-startup': {
+        title: p => `禁用启动项:${p.name}`,
+        desc: p => `命令:${p.command}。通过系统的启动项开关机制禁用(与任务管理器同一机制),完全可逆,原状态会写入回滚记录。`,
+      },
     },
     causes: {
       'cause.power-policy': { title: '电源策略限制', desc: '电源计划或处理器电源设置在压制 CPU 频率,可通过调整电源计划解决。' },
@@ -149,6 +192,11 @@ export const COPY = {
       'ev.task-count': p => `${p.count} 个第三方计划任务`,
       'ev.vendor-service-count': p => `${p.count} 个 Dell/Intel 服务正在运行`,
       'ev.vendor-busy': p => `${p.displayName}(进程 ${p.process})CPU ${p.cpuPercent}%、内存 ${p.memMB} MB`,
+      'ev.ac-drain': p => `接通电源时电池仍在放电,最高 ${(p.maxDischargeMW / 1000).toFixed(1)} W(${p.readings} 次读数)`,
+      'ev.lag-marker': p => {
+        const suspects = { 'clock-drop': '频率骤降', 'disk-burst': '磁盘爆发', 'cpu-burst': 'CPU 满载', 'mem-spike': '内存陡升', none: '指标无异常' };
+        return `第 ${p.offsetSec} 秒:频率 ${p.clockMHz} MHz、负载 ${p.loadPercent}%、磁盘 ${p.diskPercent}% → ${suspects[p.suspect] || p.suspect}`;
+      },
       'ev.duplicate-apps': p => `同类软件:${p.names}`,
       'ev.on-battery': () => '扫描时正在使用电池供电',
       'ev.vendor-service-running': p => `${p.displayName}(${p.name})正在运行`,
@@ -193,6 +241,35 @@ export const COPY = {
       memUsed: 'Memory',
       diskActive: 'Disk Active',
       tabs: { overview: 'Overview', actions: 'Actions', processes: 'Processes', startup: 'Startup', services: 'Services', software: 'Software', events: 'Events' },
+      symptom: {
+        title: 'What feels slow on this PC?',
+        hint: 'Pick the closest symptom — the diagnosis will be built around it. Skip if unsure.',
+        skip: 'Skip and scan',
+        'symptom.boot-slow': 'Slow boot / login',
+        'symptom.always-slow': 'Slow all the time',
+        'symptom.intermittent': 'Intermittent freezes',
+        'symptom.fan-noise': 'Fan roaring + slow',
+        'symptom.battery-only': 'Slow on battery only',
+        'symptom.app-specific': 'One app is slow',
+      },
+      lag: {
+        button: "It's lagging now!",
+        marked: p => `Marked lag #${p.count} (at ${p.offset}s)`,
+        hint: 'Press the moment it feels slow — analysis will inspect the samples from exactly that moment',
+      },
+      kb: {
+        'kb.dell-optimizer': { what: "Dell Optimizer: Dell's AI performance tuner that dynamically overrides CPU/power scheduling.", ifDisabled: "Disabling removes Dell's adaptive tuning and reverts to Windows default scheduling — the fix for many downclocking cases.", caution: '' },
+        'kb.dell-power-manager': { what: 'Dell Power Manager: battery and thermal management service.', ifDisabled: 'Custom charge policies and thermal modes stop applying; charging/cooling revert to firmware defaults.', caution: 'Note your custom charge limit settings before disabling if you rely on them.' },
+        'kb.intel-dtt': { what: 'Intel Dynamic Tuning (DTT/DPTF): adjusts CPU performance based on temperature and power.', ifDisabled: 'Platform-level power tuning stops; scheduling reverts to Windows defaults. Some thin laptops may run slightly warmer.', caution: '' },
+        'kb.supportassist-remediation': { what: 'Dell SupportAssist Remediation: runs Dell-issued diagnostics and fixes in the background.', ifDisabled: 'Automatic remediation stops; manual diagnostics still work. System stability unaffected.', caution: '' },
+        'kb.supportassist': { what: 'Dell SupportAssist: support agent that scans hardware periodically and reports home.', ifDisabled: 'No automatic hardware scans or warranty reminders; SupportAssist can still be run manually.', caution: '' },
+        'kb.dell-techhub': { what: 'Dell TechHub: unified background framework serving Dell apps.', ifDisabled: 'Some Dell apps (e.g. newer Dell Display Manager) may lose functionality.', caution: '' },
+        'kb.dell-update': { what: 'Dell client management/update service: automatic driver and firmware updates.', ifDisabled: 'Drivers stop auto-updating; run Dell Command Update manually on a schedule.', caution: 'Keep it if your fleet relies on automatic driver update policy.' },
+        'kb.dell-digital-delivery': { what: 'Dell Digital Delivery: downloads factory-bundled software.', ifDisabled: 'Stops auto-downloading bundled software. Practically no side effects.', caution: '' },
+        'kb.intel-dsa': { what: 'Intel Driver & Support Assistant: detects and updates Intel drivers.', ifDisabled: 'Intel drivers stop auto-checking for updates; update manually from intel.com.', caution: '' },
+        'kb.intel-telemetry': { what: 'Intel telemetry/usage reporting: collects and uploads system usage data.', ifDisabled: 'Stops data reporting. No functional loss.', caution: '' },
+        'kb.driver-core': { what: 'Driver core service: functional driver components (audio/graphics/storage/ME).', ifDisabled: 'Disabling breaks the corresponding hardware feature; this tool does not offer a disable button.', caution: '' },
+      },
       act: {
         run: 'Run', confirmTitle: 'Run this action?', confirm: 'Run', cancel: 'Cancel',
         running: 'Running…', success: 'Succeeded', failed: 'Failed',
@@ -219,6 +296,8 @@ export const COPY = {
       },
       yes: 'Yes',
       empty: 'No data',
+      startupState: { enabled: 'Enabled', disabled: 'Disabled' },
+      disableBtn: 'Disable',
       startupTasksTitle: 'Scheduled Tasks (non-system)',
       utilityCategories: { browser: 'Browser', archive: 'Archiver', assistant: 'Assistant/Manager' },
     },
@@ -257,6 +336,14 @@ export const COPY = {
         title: 'Duplicate Utility Software',
         desc: p => `${p.count} apps of the same kind (${p.category}) are installed. Duplicates usually mean duplicate background updaters and startup entries.`,
       },
+      'rule.adapter-underpowered': {
+        title: 'Power Adapter Underpowered',
+        desc: p => `The battery kept discharging while plugged in (up to ${(p.maxDischargeMW / 1000).toFixed(1)} W) — the adapter is undersized, aging, or unrecognized. Swapping to a genuine full-wattage charger usually fixes this immediately.`,
+      },
+      'rule.lag-moments': {
+        title: 'Your Marked Lag Moments',
+        desc: p => `You marked ${p.count} lag moment(s) during the scan; the samples from each moment are in the evidence.`,
+      },
       'rule.no-major-issue': {
         title: 'No Major Bottleneck Detected',
         desc: () => 'CPU frequency, memory, and disk stayed within normal ranges in this sampling window. If the slowdown is intermittent, run the deep scan while it is happening.',
@@ -286,6 +373,10 @@ export const COPY = {
         title: p => `Consider Uninstalling: ${p.displayName}`,
         desc: () => 'If you confirm this component is unnecessary, uninstall it manually via Settings > Apps. This tool never uninstalls software automatically.',
       },
+      'action.disable-startup': {
+        title: p => `Disable Startup Item: ${p.name}`,
+        desc: p => `Command: ${p.command}. Toggled via the system StartupApproved mechanism (same as Task Manager), fully reversible; the previous state goes into a rollback record.`,
+      },
     },
     causes: {
       'cause.power-policy': { title: 'Power Policy Limit', desc: 'The power plan or processor power settings are capping CPU frequency; adjusting the plan resolves this.' },
@@ -309,6 +400,11 @@ export const COPY = {
       'ev.task-count': p => `${p.count} third-party scheduled tasks`,
       'ev.vendor-service-count': p => `${p.count} Dell/Intel services running`,
       'ev.vendor-busy': p => `${p.displayName} (process ${p.process}) CPU ${p.cpuPercent}%, memory ${p.memMB} MB`,
+      'ev.ac-drain': p => `Battery discharged while on AC, up to ${(p.maxDischargeMW / 1000).toFixed(1)} W (${p.readings} readings)`,
+      'ev.lag-marker': p => {
+        const suspects = { 'clock-drop': 'clock drop', 'disk-burst': 'disk burst', 'cpu-burst': 'CPU saturated', 'mem-spike': 'memory spike', none: 'no metric anomaly' };
+        return `At ${p.offsetSec}s: clock ${p.clockMHz} MHz, load ${p.loadPercent}%, disk ${p.diskPercent}% → ${suspects[p.suspect] || p.suspect}`;
+      },
       'ev.duplicate-apps': p => `Same-category apps: ${p.names}`,
       'ev.on-battery': () => 'Running on battery during the scan',
       'ev.vendor-service-running': p => `${p.displayName} (${p.name}) is running`,

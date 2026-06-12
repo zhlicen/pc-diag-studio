@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -23,6 +24,10 @@ const appVersion = "0.1.0"
 type App struct {
 	ctx      context.Context
 	scanning atomic.Bool
+
+	markerMu  sync.Mutex
+	markers   []int
+	scanStart time.Time
 }
 
 func NewApp() *App {
@@ -48,13 +53,19 @@ func (a *App) GetStatus() AppStatus {
 }
 
 // RunScan executes a full scan. mode: "quick" (15s @ 1s) or "deep" (180s @
-// 5s). Progress is emitted as "scan:progress" events; the report is also
-// archived under .\log\run-*\diagnostic-report.json.
-func (a *App) RunScan(mode string) (*model.DiagnosticReport, error) {
+// 5s). symptom is the user's complaint type (symptom.* or empty) and steers
+// rule weighting. Progress is emitted as "scan:progress" events; the report
+// is archived under .\log\run-*\diagnostic-report.json.
+func (a *App) RunScan(mode string, symptom string) (*model.DiagnosticReport, error) {
 	if !a.scanning.CompareAndSwap(false, true) {
 		return nil, fmt.Errorf("scan already running")
 	}
 	defer a.scanning.Store(false)
+
+	a.markerMu.Lock()
+	a.markers = nil
+	a.scanStart = time.Now()
+	a.markerMu.Unlock()
 
 	scanMode, durationSec, intervalSec := model.ScanQuick, 15, 1
 	if mode == string(model.ScanDeep) {
@@ -68,6 +79,10 @@ func (a *App) RunScan(mode string) (*model.DiagnosticReport, error) {
 	}
 
 	report := collector.CollectFor(context.Background(), scanMode, durationSec, intervalSec, progress)
+	report.Symptom = symptom
+	a.markerMu.Lock()
+	report.LagMarkers = append([]int(nil), a.markers...)
+	a.markerMu.Unlock()
 	analyzer.Analyze(&report)
 
 	if path, err := writeReport(&report); err != nil {
@@ -86,6 +101,19 @@ func (a *App) OpenLogFolder() {
 	_ = exec.Command("explorer.exe", dir).Start()
 }
 
+// MarkLagNow records "the user feels lag right now" as an offset into the
+// running scan; markers become first-class evidence in the analysis.
+func (a *App) MarkLagNow() int {
+	if !a.scanning.Load() {
+		return -1
+	}
+	a.markerMu.Lock()
+	defer a.markerMu.Unlock()
+	offset := int(time.Since(a.scanStart).Seconds())
+	a.markers = append(a.markers, offset)
+	return offset
+}
+
 // RunAction executes a user-confirmed optimization action. RecommendOnly
 // actions are not executable and unknown IDs are rejected.
 func (a *App) RunAction(actionID string, params map[string]any) model.ActionResult {
@@ -100,9 +128,18 @@ func (a *App) RunAction(actionID string, params map[string]any) model.ActionResu
 	case "action.disable-service":
 		name, _ := params["serviceName"].(string)
 		return opt.DisableService(name)
+	case "action.disable-startup":
+		name, _ := params["name"].(string)
+		location, _ := params["location"].(string)
+		return opt.DisableStartupItem(name, location)
 	default:
 		return model.ActionResult{ActionID: actionID, Status: "failed", Detail: "unknown or non-executable action"}
 	}
+}
+
+// RollbackStartup restores a previously disabled startup item.
+func (a *App) RollbackStartup(name, actionTime string) model.ActionResult {
+	return optimizer.New(logRoot()).RollbackStartupItem(name, actionTime)
 }
 
 // ListRollbackRecords returns all persisted service rollback records.

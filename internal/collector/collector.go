@@ -34,6 +34,8 @@ func CollectFor(ctx context.Context, mode model.ScanMode, durationSec, intervalS
 	// the one-shot PowerShell collections run alongside it so the slowest
 	// collector doesn't extend the scan.
 	var wg sync.WaitGroup
+	var batteryStart model.BatteryReading
+	var batteryStartOK bool
 	var power model.PowerStateInfo
 	var events []model.ThrottleEvent
 	var services []model.ServiceInfo
@@ -44,7 +46,8 @@ func CollectFor(ctx context.Context, mode model.ScanMode, durationSec, intervalS
 	var sysEvents []model.EventInfo
 	noteSets := make([][]string, 8)
 
-	wg.Add(8)
+	wg.Add(9)
+	go func() { defer wg.Done(); batteryStart, batteryStartOK = readBatteryStatus(0) }()
 	go func() { defer wg.Done(); power = collectPower(&noteSets[0]) }()
 	go func() { defer wg.Done(); events = collectThrottleEvents(&noteSets[1]) }()
 	go func() { defer wg.Done(); services = collectVendorServices(&noteSets[2]) }()
@@ -58,7 +61,18 @@ func CollectFor(ctx context.Context, mode model.ScanMode, durationSec, intervalS
 	report.Samples = sampleSeries(ctx, totalSamples, intervalSec, cpu.BaseClockMHz, mem.TotalMB, progress, notes)
 	report.Sampling = summarize(report.Samples, intervalSec, cpu.BaseClockMHz)
 
+	// Second battery reading after the sampling window: two points separated
+	// by the scan duration make AC-drain a sustained observation, not a blip.
+	var readings []model.BatteryReading
+	if batteryEnd, ok := readBatteryStatus(durationSec); ok {
+		readings = append(readings, batteryEnd)
+	}
+
 	wg.Wait()
+	if batteryStartOK {
+		readings = append([]model.BatteryReading{batteryStart}, readings...)
+	}
+	report.PowerDelivery = summarizePowerDelivery(readings)
 	report.Power = power
 	report.ThrottleEvents = events
 	report.VendorServices = services

@@ -301,6 +301,55 @@ html, body {
 .modal-title { font-weight: 600; font-size: 15px; }
 .modal-buttons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
 
+/* M4: symptom picker, lag button, KB blocks, evidence links */
+.symptom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 6px 0 4px;
+}
+.symptom-btn { text-align: left; padding: 9px 12px; }
+.symptom-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  margin-bottom: 6px;
+  border-radius: 999px;
+  background: var(--surface-tint);
+  color: var(--teal-dark);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.lag-button {
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  border-color: var(--amber);
+  color: var(--amber);
+}
+.lag-button:hover { background: var(--amber-bg); border-color: var(--amber); color: var(--amber); }
+.lag-feedback { min-height: 18px; font-size: 12.5px; }
+
+.kb-block {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: var(--surface-tint);
+  border-radius: 8px;
+  font-size: 12.5px;
+  color: var(--text-dim);
+  line-height: 1.55;
+}
+.kb-caution { color: var(--amber); }
+
+.ev-link { cursor: pointer; }
+.ev-link:hover { color: var(--teal-dark); text-decoration: underline; }
+
+.row-flag td { background: var(--amber-bg) !important; }
+
+.spark-marker { stroke: var(--amber); stroke-width: 1.4; stroke-dasharray: 3 2; }
+
+.btn-sm { padding: 2px 8px; font-size: 12px; }
+
 /* Progress */
 .scan-title { font-weight: 600; font-size: 16px; }
 .progress {

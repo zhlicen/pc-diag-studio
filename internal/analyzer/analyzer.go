@@ -21,8 +21,22 @@ const (
 	RuleStartupLoad        = "rule.startup-load"
 	RuleVendorServices     = "rule.vendor-services"
 	RuleDuplicateUtilities = "rule.duplicate-utilities"
+	RuleAdapterUnderpowered = "rule.adapter-underpowered"
+	RuleLagMoments         = "rule.lag-moments"
 	RuleNoMajorIssue       = "rule.no-major-issue"
 )
+
+// symptomPreferredRules steers which finding becomes the primary conclusion
+// when the frequency rule did not fire — the report should answer the
+// complaint the user actually selected.
+var symptomPreferredRules = map[string][]string{
+	model.SymptomBootSlow:     {RuleStartupLoad, RuleDuplicateUtilities, RuleVendorServices},
+	model.SymptomAlwaysSlow:   {RuleAdapterUnderpowered, RuleMemoryPressure, RuleDiskActiveHigh},
+	model.SymptomIntermittent: {RuleLagMoments, RuleDiskActiveHigh, RuleVendorServices},
+	model.SymptomFanNoise:     {RuleAdapterUnderpowered, RuleDiskActiveHigh},
+	model.SymptomBatteryOnly:  {RuleAdapterUnderpowered, RulePowerSaverScheme},
+	model.SymptomAppSpecific:  {RuleMemoryPressure, RuleDiskActiveHigh},
+}
 
 // Analyze fills report.Analysis in place.
 func Analyze(r *model.DiagnosticReport) {
@@ -185,6 +199,31 @@ func Analyze(r *model.DiagnosticReport) {
 		}
 	}
 
+	// Adapter drain: discharging while plugged in is direct evidence of an
+	// undersized/failing power adapter — the measurable version of "swapping
+	// the charger fixed it".
+	if r.PowerDelivery.ACDrainDetected {
+		a.Findings = append(a.Findings, model.Finding{
+			RuleID:   RuleAdapterUnderpowered,
+			Severity: "warning",
+			Params:   map[string]any{"maxDischargeMW": r.PowerDelivery.MaxDischargeMW},
+			Evidence: []model.Evidence{
+				{EvidenceID: "ev.ac-drain", Params: map[string]any{
+					"maxDischargeMW": r.PowerDelivery.MaxDischargeMW,
+					"readings":       len(r.PowerDelivery.Readings),
+				}},
+			},
+		})
+		a.CategoryScores["power-delivery"] = 15
+		a.Score -= 15
+	}
+
+	// Lag markers: correlate each "it's lagging now" press with the nearest
+	// sample and classify what spiked at that moment.
+	if f := lagMomentsFinding(r); f != nil {
+		a.Findings = append(a.Findings, *f)
+	}
+
 	for _, d := range r.Disks {
 		if d.IsSystem && d.FreePercent < 12 {
 			a.Findings = append(a.Findings, model.Finding{
@@ -225,12 +264,21 @@ func Analyze(r *model.DiagnosticReport) {
 			"topCauseId":          topCause,
 			"topConfidence":       topConfidence,
 		}
+	} else if primary := symptomPrimary(r.Symptom, a.Findings); primary != nil {
+		a.PrimaryRuleID = primary.RuleID
+		a.PrimaryParams = primary.Params
 	} else if len(a.Findings) > 0 {
 		a.PrimaryRuleID = a.Findings[0].RuleID
 		a.PrimaryParams = a.Findings[0].Params
 	} else {
 		a.PrimaryRuleID = RuleNoMajorIssue
 		a.PrimaryParams = map[string]any{}
+	}
+	if r.Symptom != "" {
+		if a.PrimaryParams == nil {
+			a.PrimaryParams = map[string]any{}
+		}
+		a.PrimaryParams["symptom"] = r.Symptom
 	}
 
 	a.Actions = recommendActions(r, &a)
@@ -252,6 +300,79 @@ func memFinding(s model.SamplingSummary, severity string) model.Finding {
 			{EvidenceID: "ev.commit", Params: map[string]any{"avgPercent": round1(s.AvgCommitPercent)}},
 		},
 	}
+}
+
+// symptomPrimary returns the finding the user's symptom points at, if any.
+func symptomPrimary(symptom string, findings []model.Finding) *model.Finding {
+	for _, rid := range symptomPreferredRules[symptom] {
+		for i := range findings {
+			if findings[i].RuleID == rid {
+				return &findings[i]
+			}
+		}
+	}
+	return nil
+}
+
+// lagMomentsFinding classifies what spiked at each user-marked lag moment.
+func lagMomentsFinding(r *model.DiagnosticReport) *model.Finding {
+	if len(r.LagMarkers) == 0 || len(r.Samples) == 0 {
+		return nil
+	}
+	s := r.Sampling
+	anySuspect := false
+	var evidence []model.Evidence
+	markers := r.LagMarkers
+	if len(markers) > 10 {
+		markers = markers[:10]
+	}
+	for _, m := range markers {
+		// nearest sample by offset
+		best := r.Samples[0]
+		for _, sm := range r.Samples {
+			if abs(sm.OffsetSec-m) < abs(best.OffsetSec-m) {
+				best = sm
+			}
+		}
+		suspect := "none"
+		switch {
+		case s.AvgEffectiveClockMHz > 0 && best.EffectiveClockMHz < 0.7*s.AvgEffectiveClockMHz:
+			suspect = "clock-drop"
+		case best.DiskActivePercent >= 80 || best.DiskQueue >= 2:
+			suspect = "disk-burst"
+		case best.CPULoadPercent >= 85:
+			suspect = "cpu-burst"
+		case best.MemUsedPercent >= s.AvgMemUsedPercent+8:
+			suspect = "mem-spike"
+		}
+		if suspect != "none" {
+			anySuspect = true
+		}
+		evidence = append(evidence, model.Evidence{EvidenceID: "ev.lag-marker", Params: map[string]any{
+			"offsetSec":   m,
+			"clockMHz":    round1(best.EffectiveClockMHz),
+			"loadPercent": round1(best.CPULoadPercent),
+			"diskPercent": round1(best.DiskActivePercent),
+			"suspect":     suspect,
+		}})
+	}
+	severity := "info"
+	if anySuspect {
+		severity = "warning"
+	}
+	return &model.Finding{
+		RuleID:   RuleLagMoments,
+		Severity: severity,
+		Params:   map[string]any{"count": len(r.LagMarkers)},
+		Evidence: evidence,
+	}
+}
+
+func abs(v int) int {
+	if v < 0 {
+		return -v
+	}
+	return v
 }
 
 // vendorBusyProcesses cross-references vendor service executables with the
@@ -279,10 +400,13 @@ func vendorBusyProcesses(r *model.DiagnosticReport) []map[string]any {
 		}
 		if p.CPUPercent >= cpuThreshold || p.WorkingSetMB >= memThresholdMB {
 			busy = append(busy, map[string]any{
+				"serviceName": svc.Name,
 				"displayName": svc.DisplayName,
 				"process":     p.Name,
 				"cpuPercent":  round1(p.CPUPercent),
 				"memMB":       round1(p.WorkingSetMB),
+				"_tab":        "services",
+				"_ref":        svc.Name,
 			})
 		}
 	}

@@ -20,6 +20,28 @@ var startupWhitelist = []string{
 	"onedrive", // arguably noise, but Microsoft-managed and login-critical for many fleets
 }
 
+// StartupApproved holds enable/disable state as binary values: an odd first
+// byte means disabled. Items without a value are enabled by default.
+const startupApprovedScript = `
+$keys = @(
+  'HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run',
+  'HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run32',
+  'HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder',
+  'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run',
+  'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder'
+)
+$out = @{}
+foreach ($k in $keys) {
+    if (-not (Test-Path $k)) { continue }
+    $p = Get-Item $k
+    foreach ($name in $p.GetValueNames()) {
+        $v = $p.GetValue($name)
+        if ($v -is [byte[]] -and $v.Length -gt 0) { $out["$($name.ToLower())"] = [int]$v[0] }
+    }
+}
+$out | ConvertTo-Json
+`
+
 func collectStartupItems(notes *[]string) []model.StartupItem {
 	var raw []struct {
 		Name     string `json:"Name"`
@@ -31,6 +53,12 @@ func collectStartupItems(notes *[]string) []model.StartupItem {
 		*notes = append(*notes, "startup items: "+err.Error())
 		return nil
 	}
+
+	approved := map[string]int{}
+	if err := runPSJSON(startupApprovedScript, &approved); err != nil {
+		*notes = append(*notes, "startup approved state: "+err.Error())
+	}
+
 	items := make([]model.StartupItem, 0, len(raw))
 	for _, s := range raw {
 		review := true
@@ -41,15 +69,39 @@ func collectStartupItems(notes *[]string) []model.StartupItem {
 				break
 			}
 		}
+		flag, hasFlag := approved[strings.ToLower(s.Name)]
 		items = append(items, model.StartupItem{
 			Name:         s.Name,
 			Command:      s.Command,
 			Location:     s.Location,
 			User:         s.User,
 			ReviewWorthy: review,
+			Disabled:     hasFlag && flag%2 == 1,
+			CanToggle:    StartupApprovedKey(s.Location) != "",
 		})
 	}
 	return items
+}
+
+// StartupApprovedKey maps a Win32_StartupCommand location to the registry
+// key holding its enable/disable state. Empty means the optimizer cannot
+// safely toggle this item (e.g. another user's HKU hive).
+func StartupApprovedKey(location string) string {
+	loc := strings.ToLower(location)
+	switch {
+	case strings.HasPrefix(loc, `hklm\`) && strings.HasSuffix(loc, `\run`):
+		return `HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run`
+	case strings.HasPrefix(loc, `hklm\`) && strings.HasSuffix(loc, `\run32`):
+		return `HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run32`
+	case strings.HasPrefix(loc, `hku\`) && strings.HasSuffix(loc, `\run`):
+		// Elevated-same-user scans see their own hive as HKU\<sid>; map to HKCU.
+		return `HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run`
+	case loc == "startup":
+		return `HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder`
+	case loc == "common startup":
+		return `HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder`
+	}
+	return ""
 }
 
 // Non-Microsoft scheduled tasks; the \Microsoft\* tree is OS-managed noise.

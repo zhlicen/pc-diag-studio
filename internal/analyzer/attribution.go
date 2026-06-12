@@ -87,6 +87,13 @@ func attributePowerPolicy(r *model.DiagnosticReport) *model.AttributionCandidate
 		maxState = p.DCMaxProcessorState
 		side = "dc"
 	}
+	// "Slow on battery only" complaint: the DC side matters even when the
+	// scan happens to run on AC.
+	if r.Symptom == model.SymptomBatteryOnly && p.OnAC &&
+		p.DCMaxProcessorState >= 0 && p.DCMaxProcessorState < 100 {
+		maxState = p.DCMaxProcessorState
+		side = "dc"
+	}
 	if maxState >= 0 && maxState < 100 {
 		score += 50
 		ev = append(ev, model.Evidence{EvidenceID: "ev.max-proc-state", Params: map[string]any{
@@ -148,6 +155,14 @@ func attributeFirmwareAdapter(r *model.DiagnosticReport) *model.AttributionCandi
 		score += 10
 		ev = append(ev, model.Evidence{EvidenceID: "ev.on-battery", Params: map[string]any{}})
 	}
+	// Discharging while plugged in is the strongest adapter signal we have.
+	if r.PowerDelivery.ACDrainDetected {
+		score += 50
+		ev = append(ev, model.Evidence{EvidenceID: "ev.ac-drain", Params: map[string]any{
+			"maxDischargeMW": r.PowerDelivery.MaxDischargeMW,
+			"readings":       len(r.PowerDelivery.Readings),
+		}})
+	}
 	return candidate(CauseFirmwareAdapter, score, ev)
 }
 
@@ -168,6 +183,7 @@ func attributeVendorManager(r *model.DiagnosticReport) *model.AttributionCandida
 		score += w
 		ev = append(ev, model.Evidence{EvidenceID: "ev.vendor-service-running", Params: map[string]any{
 			"name": s.Name, "displayName": s.DisplayName, "hint": s.VendorHint,
+			"_tab": "services", "_ref": s.Name,
 		}})
 	}
 	if score > 80 {
@@ -186,6 +202,11 @@ func attributeThermal(r *model.DiagnosticReport) *model.AttributionCandidate {
 	} else if t >= 75 {
 		score += 30
 		ev = append(ev, model.Evidence{EvidenceID: "ev.thermal-temp", Params: map[string]any{"maxC": round1(t)}})
+	}
+	// The user's own ears are a thermal sensor: "fan roaring while slow"
+	// raises the thermal hypothesis.
+	if r.Symptom == model.SymptomFanNoise && score > 0 {
+		score += 15
 	}
 
 	// Weak heuristic without a temperature sensor: sustained high load while
@@ -210,6 +231,9 @@ func attributeBattery(r *model.DiagnosticReport) *model.AttributionCandidate {
 			score += 10
 		} else {
 			score += 40
+		}
+		if r.Symptom == model.SymptomBatteryOnly {
+			score += 15
 		}
 		ev = append(ev, model.Evidence{EvidenceID: "ev.battery-wear", Params: map[string]any{
 			"wearPercent": round1(p.BatteryWearPercent), "onAC": p.OnAC,

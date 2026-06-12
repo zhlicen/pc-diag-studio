@@ -76,6 +76,9 @@ func (o *Optimizer) RollbackService(serviceName, actionTime string) model.Action
 	}
 	var rec *model.RollbackRecord
 	for i := range records {
+		if records[i].Kind != "" && records[i].Kind != "service" {
+			continue
+		}
 		if records[i].ServiceName == serviceName && records[i].ActionTime == actionTime && !records[i].RolledBack {
 			rec = &records[i]
 			break

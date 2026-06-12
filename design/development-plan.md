@@ -1,8 +1,11 @@
 # Development Plan
 
-Four milestones. Each ends with a runnable build and a concrete acceptance test. M1 deliberately goes straight at the core value: reproducing the motivating case's correct conclusion on the IT user's own Dell machine.
+Five milestones. Each ends with a runnable build and a concrete acceptance test. M1 deliberately goes straight at the core value: reproducing the motivating case's correct conclusion on the IT user's own Dell machine.
 
-## M1 — Skeleton + Frequency Root-Cause Chain
+> **Implementation status lives in [STATUS.md](STATUS.md).** As of 2026-06-12:
+> M1 ✅ verified · M2 ✅ verified+pushed · M3 ✅ verified (commit may be pending) · M4 code-complete, NEVER COMPILED · M5 not started.
+
+## M1 — Skeleton + Frequency Root-Cause Chain ✅
 
 Scope:
 
@@ -21,7 +24,7 @@ Scope:
 
 Acceptance: run Deep Scan on the IT user's Dell laptop; the report shows effective frequency time series and a ranked attribution (or an honest "no constraint detected" since the machine was already fixed). Forcing a low max-processor-state reproduces a correct "power policy" attribution.
 
-## M2 — Full Rule Set + Workspace
+## M2 — Full Rule Set + Workspace ✅
 
 Scope:
 
@@ -32,7 +35,7 @@ Scope:
 
 Acceptance: full report renders in both languages with no English-title matching anywhere.
 
-## M3 — Actions + Rollback
+## M3 — Actions + Rollback ✅
 
 Scope:
 
@@ -42,7 +45,7 @@ Scope:
 
 Acceptance: disable a harmless test service, restart app, roll it back from the log record.
 
-## M4 — Symptom-Driven Diagnosis + Evidence Integrity
+## M4 — Symptom-Driven Diagnosis + Evidence Integrity 🔶 code-complete, unverified
 
 Scope from the 2026-06-12 product feedback round (the user's critique: rules
 felt anecdote-driven, no subjective input, shallow power signals, disable

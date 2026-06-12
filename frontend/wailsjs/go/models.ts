@@ -192,6 +192,28 @@ export namespace model {
 		}
 	}
 	
+	export class BatteryReading {
+	    atSec: number;
+	    powerOnline: boolean;
+	    charging: boolean;
+	    discharging: boolean;
+	    chargeRateMW: number;
+	    dischargeRateMW: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new BatteryReading(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.atSec = source["atSec"];
+	        this.powerOnline = source["powerOnline"];
+	        this.charging = source["charging"];
+	        this.discharging = source["discharging"];
+	        this.chargeRateMW = source["chargeRateMW"];
+	        this.dischargeRateMW = source["dischargeRateMW"];
+	    }
+	}
 	export class CPUInfo {
 	    name: string;
 	    baseClockMHz: number;
@@ -292,6 +314,8 @@ export namespace model {
 	    location: string;
 	    user: string;
 	    reviewWorthy: boolean;
+	    disabled: boolean;
+	    canToggle: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new StartupItem(source);
@@ -304,6 +328,8 @@ export namespace model {
 	        this.location = source["location"];
 	        this.user = source["user"];
 	        this.reviewWorthy = source["reviewWorthy"];
+	        this.disabled = source["disabled"];
+	        this.canToggle = source["canToggle"];
 	    }
 	}
 	export class ProcessInfo {
@@ -424,6 +450,40 @@ export namespace model {
 	        this.message = source["message"];
 	    }
 	}
+	export class PowerDelivery {
+	    readings: BatteryReading[];
+	    acDrainDetected: boolean;
+	    maxDischargeMW: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new PowerDelivery(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.readings = this.convertValues(source["readings"], BatteryReading);
+	        this.acDrainDetected = source["acDrainDetected"];
+	        this.maxDischargeMW = source["maxDischargeMW"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class PowerStateInfo {
 	    activeSchemeGuid: string;
 	    activeSchemeName: string;
@@ -497,12 +557,15 @@ export namespace model {
 	    generatedAt: string;
 	    scanMode: string;
 	    durationSec: number;
+	    symptom: string;
+	    lagMarkers: number[];
 	    isAdmin: boolean;
 	    computer: ComputerInfo;
 	    cpu: CPUInfo;
 	    memory: MemoryInfo;
 	    disks: DiskInfo[];
 	    power: PowerStateInfo;
+	    powerDelivery: PowerDelivery;
 	    throttleEvents: ThrottleEvent[];
 	    vendorServices: ServiceInfo[];
 	    samples: Sample[];
@@ -525,12 +588,15 @@ export namespace model {
 	        this.generatedAt = source["generatedAt"];
 	        this.scanMode = source["scanMode"];
 	        this.durationSec = source["durationSec"];
+	        this.symptom = source["symptom"];
+	        this.lagMarkers = source["lagMarkers"];
 	        this.isAdmin = source["isAdmin"];
 	        this.computer = this.convertValues(source["computer"], ComputerInfo);
 	        this.cpu = this.convertValues(source["cpu"], CPUInfo);
 	        this.memory = this.convertValues(source["memory"], MemoryInfo);
 	        this.disks = this.convertValues(source["disks"], DiskInfo);
 	        this.power = this.convertValues(source["power"], PowerStateInfo);
+	        this.powerDelivery = this.convertValues(source["powerDelivery"], PowerDelivery);
 	        this.throttleEvents = this.convertValues(source["throttleEvents"], ThrottleEvent);
 	        this.vendorServices = this.convertValues(source["vendorServices"], ServiceInfo);
 	        this.samples = this.convertValues(source["samples"], Sample);
@@ -571,11 +637,17 @@ export namespace model {
 	
 	
 	
+	
 	export class RollbackRecord {
+	    kind?: string;
 	    serviceName: string;
 	    displayName: string;
 	    prevStartMode: string;
 	    prevState: string;
+	    approvedKey?: string;
+	    valueName?: string;
+	    prevValueHex?: string;
+	    prevExisted?: boolean;
 	    actionTime: string;
 	    result: string;
 	    rolledBack: boolean;
@@ -587,10 +659,15 @@ export namespace model {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.kind = source["kind"];
 	        this.serviceName = source["serviceName"];
 	        this.displayName = source["displayName"];
 	        this.prevStartMode = source["prevStartMode"];
 	        this.prevState = source["prevState"];
+	        this.approvedKey = source["approvedKey"];
+	        this.valueName = source["valueName"];
+	        this.prevValueHex = source["prevValueHex"];
+	        this.prevExisted = source["prevExisted"];
 	        this.actionTime = source["actionTime"];
 	        this.result = source["result"];
 	        this.rolledBack = source["rolledBack"];

@@ -2,6 +2,7 @@ package analyzer
 
 import (
 	"diagnostic-studio/internal/collector"
+	"diagnostic-studio/internal/knowledge"
 	"diagnostic-studio/internal/model"
 )
 
@@ -10,6 +11,7 @@ const (
 	ActionResetMaxProcState    = "action.reset-max-proc-state"
 	ActionCleanTemp            = "action.clean-temp"
 	ActionDisableService       = "action.disable-service"
+	ActionDisableStartup       = "action.disable-startup"
 	ActionUninstallRecommend   = "action.uninstall-recommendation"
 )
 
@@ -46,72 +48,90 @@ func recommendActions(r *model.DiagnosticReport, a *model.AnalysisResult) []mode
 		})
 	}
 
-	// Vendor power managers: disable (with rollback) when they are implicated
-	// in a frequency constraint; uninstall stays recommendation-only.
-	if freqConstrained {
-		for _, s := range r.VendorServices {
-			isPowerManager := s.VendorHint == model.HintDellOptimizer ||
-				s.VendorHint == model.HintDellPowerManager ||
-				s.VendorHint == model.HintIntelDTT
-			if !isPowerManager || s.State != "Running" {
-				continue
-			}
-			actions = append(actions, model.OptimizationAction{
-				ActionID: ActionDisableService,
-				Risk:     "caution",
-				Params: map[string]any{
-					"serviceName": s.Name,
-					"displayName": s.DisplayName,
-					"hint":        s.VendorHint,
-				},
-				SourceRuleID: RuleCPUFreqConstrained,
-			})
-			actions = append(actions, model.OptimizationAction{
-				ActionID:      ActionUninstallRecommend,
-				Risk:          "review",
-				Params:        map[string]any{"displayName": s.DisplayName, "hint": s.VendorHint},
-				RecommendOnly: true,
-				SourceRuleID:  RuleCPUFreqConstrained,
-			})
+	// Service disable actions are knowledge-base gated: explain-or-don't-offer.
+	// A service gets a disable button only when (a) a curated KB entry says
+	// disabling is safe, and (b) there is a reason — it's a power manager
+	// during a frequency constraint, it was measurably busy during the scan,
+	// or the vendor-services finding surfaced it as trimmable background.
+	busySet := map[string]bool{}
+	for _, b := range vendorBusyProcesses(r) {
+		if n, ok := b["serviceName"].(string); ok {
+			busySet[n] = true
 		}
 	}
-
-	// Vendor service load: when the vendor-services rule fired, every running
-	// Dell/Intel service gets a disable action (with rollback) even without a
-	// frequency constraint — the rule surfaced them as background load, so the
-	// tool must offer the handling, not just the complaint.
 	runningVendor := 0
 	for _, s := range r.VendorServices {
 		if s.State == "Running" {
 			runningVendor++
 		}
 	}
-	if runningVendor >= 4 {
-		offered := map[string]bool{}
-		for _, act := range actions {
-			if n, ok := act.Params["serviceName"].(string); ok {
-				offered[n] = true
-			}
+	offered := map[string]bool{}
+	for _, s := range r.VendorServices {
+		if s.State != "Running" || offered[s.Name] {
+			continue
 		}
-		for _, s := range r.VendorServices {
-			if s.State != "Running" || offered[s.Name] {
-				continue
+		kb := knowledge.Lookup(s.Name, s.DisplayName)
+		if kb == nil || !kb.CanDisable {
+			continue
+		}
+		isPowerManager := kb.Category == knowledge.CatPowerManager
+		var sourceRule, risk string
+		switch {
+		case isPowerManager && freqConstrained:
+			sourceRule, risk = RuleCPUFreqConstrained, "caution"
+		case busySet[s.Name]:
+			sourceRule, risk = RuleVendorServices, "review"
+			if isPowerManager {
+				risk = "caution"
 			}
-			risk := "review" // updaters/telemetry: low impact, user judgment
-			if s.VendorHint == model.HintDellOptimizer || s.VendorHint == model.HintDellPowerManager || s.VendorHint == model.HintIntelDTT {
-				risk = "caution" // power managers can change platform behavior
+		case runningVendor >= 4:
+			sourceRule, risk = RuleVendorServices, "review"
+			if isPowerManager {
+				risk = "caution"
 			}
+		default:
+			continue
+		}
+		offered[s.Name] = true
+		actions = append(actions, model.OptimizationAction{
+			ActionID: ActionDisableService,
+			Risk:     risk,
+			Params: map[string]any{
+				"serviceName": s.Name,
+				"displayName": s.DisplayName,
+				"kbId":        kb.KBID,
+				"category":    string(kb.Category),
+				"busy":        busySet[s.Name],
+			},
+			SourceRuleID: sourceRule,
+		})
+		if isPowerManager && freqConstrained {
 			actions = append(actions, model.OptimizationAction{
-				ActionID: ActionDisableService,
-				Risk:     risk,
-				Params: map[string]any{
-					"serviceName": s.Name,
-					"displayName": s.DisplayName,
-					"hint":        s.VendorHint,
-				},
-				SourceRuleID: RuleVendorServices,
+				ActionID:      ActionUninstallRecommend,
+				Risk:          "review",
+				Params:        map[string]any{"displayName": s.DisplayName, "kbId": kb.KBID},
+				RecommendOnly: true,
+				SourceRuleID:  RuleCPUFreqConstrained,
 			})
 		}
+	}
+
+	// Startup item disable: reversible via the StartupApproved mechanism,
+	// offered for enabled review-worthy items in toggleable locations.
+	for _, item := range r.StartupItems {
+		if !item.ReviewWorthy || item.Disabled || !item.CanToggle {
+			continue
+		}
+		actions = append(actions, model.OptimizationAction{
+			ActionID: ActionDisableStartup,
+			Risk:     "review",
+			Params: map[string]any{
+				"name":     item.Name,
+				"command":  item.Command,
+				"location": item.Location,
+			},
+			SourceRuleID: RuleStartupLoad,
+		})
 	}
 
 	// Temp cleanup: offered when system drive space is low. Not reversible,

@@ -11,17 +11,32 @@ const (
 	ScanDeep  ScanMode = "deep"
 )
 
+// Symptom values chosen by the user before a scan; steer rule weighting and
+// the phrasing of the primary conclusion.
+const (
+	SymptomNone         = ""
+	SymptomBootSlow     = "symptom.boot-slow"
+	SymptomAlwaysSlow   = "symptom.always-slow"
+	SymptomIntermittent = "symptom.intermittent"
+	SymptomFanNoise     = "symptom.fan-noise"
+	SymptomBatteryOnly  = "symptom.battery-only"
+	SymptomAppSpecific  = "symptom.app-specific"
+)
+
 type DiagnosticReport struct {
 	SchemaVersion  int              `json:"schemaVersion"`
 	GeneratedAt    string           `json:"generatedAt"`
 	ScanMode       ScanMode         `json:"scanMode"`
 	DurationSec    int              `json:"durationSec"`
+	Symptom        string           `json:"symptom"`    // symptom.* or empty
+	LagMarkers     []int            `json:"lagMarkers"` // offsets (sec) where the user pressed "it's lagging now"
 	IsAdmin        bool             `json:"isAdmin"`
 	Computer       ComputerInfo     `json:"computer"`
 	CPU            CPUInfo          `json:"cpu"`
 	Memory         MemoryInfo       `json:"memory"`
 	Disks          []DiskInfo       `json:"disks"`
 	Power          PowerStateInfo   `json:"power"`
+	PowerDelivery  PowerDelivery    `json:"powerDelivery"`
 	ThrottleEvents []ThrottleEvent  `json:"throttleEvents"`
 	VendorServices []ServiceInfo    `json:"vendorServices"`
 	Samples        []Sample         `json:"samples"`
@@ -50,6 +65,11 @@ type StartupItem struct {
 	// ReviewWorthy marks non-Windows entries that contribute to the
 	// startup-load rule.
 	ReviewWorthy bool `json:"reviewWorthy"`
+	// Disabled reflects the StartupApproved registry state.
+	Disabled bool `json:"disabled"`
+	// CanToggle is true when the item lives in a location the optimizer can
+	// safely enable/disable (HKLM/HKCU Run keys and startup folders).
+	CanToggle bool `json:"canToggle"`
 }
 
 type ScheduledTask struct {
@@ -119,6 +139,25 @@ type PowerStateInfo struct {
 	BatteryFullMWh      int     `json:"batteryFullMWh"`
 	BatteryWearPercent  float64 `json:"batteryWearPercent"` // -1 unknown
 	ThermalZoneMaxC     float64 `json:"thermalZoneMaxC"`    // -1 unknown/unsupported
+}
+
+// PowerDelivery captures battery charge/discharge readings taken during the
+// scan. Discharging while on AC is the measurable signature of an
+// undersized, failing, or unrecognized power adapter — no kernel driver
+// needed.
+type PowerDelivery struct {
+	Readings         []BatteryReading `json:"readings"`
+	ACDrainDetected  bool             `json:"acDrainDetected"`
+	MaxDischargeMW   int              `json:"maxDischargeMW"`
+}
+
+type BatteryReading struct {
+	AtSec          int  `json:"atSec"` // offset from scan start
+	PowerOnline    bool `json:"powerOnline"`
+	Charging       bool `json:"charging"`
+	Discharging    bool `json:"discharging"`
+	ChargeRateMW   int  `json:"chargeRateMW"`
+	DischargeRateMW int `json:"dischargeRateMW"`
 }
 
 type ThrottleEvent struct {
@@ -227,13 +266,21 @@ type ActionResult struct {
 	Time     string         `json:"time"`
 }
 
-// RollbackRecord is persisted BEFORE a service is modified; service disable
-// fails closed when this record cannot be written.
+// RollbackRecord is persisted BEFORE anything is modified; modifications
+// fail closed when this record cannot be written. Kind selects which fields
+// apply: "" or "service" for services, "startup" for startup items.
 type RollbackRecord struct {
-	ServiceName   string `json:"serviceName"`
+	Kind          string `json:"kind,omitempty"`
+	ServiceName   string `json:"serviceName"` // service name, or startup item name for Kind=startup
 	DisplayName   string `json:"displayName"`
-	PrevStartMode string `json:"prevStartMode"` // Auto / Manual / Disabled
-	PrevState     string `json:"prevState"`     // Running / Stopped
+	PrevStartMode string `json:"prevStartMode"` // Auto / Manual / Disabled (services)
+	PrevState     string `json:"prevState"`     // Running / Stopped (services)
+	// Startup-item fields: the StartupApproved key, value name, and previous
+	// binary value (hex; empty = value did not exist).
+	ApprovedKey   string `json:"approvedKey,omitempty"`
+	ValueName     string `json:"valueName,omitempty"`
+	PrevValueHex  string `json:"prevValueHex,omitempty"`
+	PrevExisted   bool   `json:"prevExisted,omitempty"`
 	ActionTime    string `json:"actionTime"`
 	Result        string `json:"result"` // disabled / failed
 	RolledBack    bool   `json:"rolledBack"`

@@ -7,10 +7,14 @@ export function GetStatus():Promise<main.AppStatus>;
 
 export function ListRollbackRecords():Promise<Array<model.RollbackRecord>>;
 
+export function MarkLagNow():Promise<number>;
+
 export function OpenLogFolder():Promise<void>;
 
 export function RollbackService(arg1:string,arg2:string):Promise<model.ActionResult>;
 
+export function RollbackStartup(arg1:string,arg2:string):Promise<model.ActionResult>;
+
 export function RunAction(arg1:string,arg2:Record<string, any>):Promise<model.ActionResult>;
 
-export function RunScan(arg1:string):Promise<model.DiagnosticReport>;
+export function RunScan(arg1:string,arg2:string):Promise<model.DiagnosticReport>;
