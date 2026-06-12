@@ -1,6 +1,6 @@
 # Diagnostic Studio
 
-Current local release candidate: `v0.5.0`.
+Current release: `v0.5.1`.
 
 A portable Windows 11 diagnostic workbench for IT/helpdesk troubleshooting of slow PCs — Dell laptop fleets first. Instead of reporting surface symptoms ("memory is high"), it samples the machine over time and attributes constrained CPU frequency to its root cause: power policy, firmware/adapter limits, vendor power managers (Dell Optimizer / Intel DTT), thermal throttling, or battery wear.
 

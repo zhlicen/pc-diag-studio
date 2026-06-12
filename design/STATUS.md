@@ -6,10 +6,10 @@
 
 ## ⚠️ Immediate actions for the next contributor
 
-1. **`git status` first.** The current local release checkpoint is `v0.5.0`
-   (M5 AI + polish). Remote push may still lag behind; verify `main...origin/main`
-   before starting work.
-2. **Keep the build green.** v0.5.0 passed `npm run build`, `wails build`,
+1. **`git status` first.** The current release checkpoint is `v0.5.1`
+   (M5 AI + polish plus R6016 PowerShell collector stability fix). Verify
+   `main...origin/main` before starting work.
+2. **Keep the build green.** v0.5.1 passed `npm run build`, `wails build`,
    `go test ./...`, `git diff --check`, and a 10-second `colltest` smoke run.
    Re-run those checks after backend, frontend binding, collector, analyzer,
    or action changes.
@@ -24,9 +24,14 @@
 | M2 full rules + workspace tabs | done | done | done | done | done |
 | M3 actions + fail-closed rollback | done | done | done (user ran app; encoding/style fixes verified) | done | done |
 | M4 symptom-driven diagnosis (see below) | done | done (`go build` + `wails build`) | GUI/actions partially checked; rollback manual tests pending | done | done |
-| M5 AI + release polish | done | done (`npm run build` + `go test` + `wails build`) | AI endpoint verified; second-PC smoke pending | done (`v0.5.0`) | pending |
+| M5 AI + release polish | done | done (`npm run build` + `go test` + `wails build`) | AI endpoint verified; second-PC smoke pending | done (`v0.5.1`) | done |
 
 ## Release checkpoint
+
+`v0.5.1` is a stability patch over `v0.5.0`. It serializes PowerShell
+collector snippets to avoid Visual C++ Runtime R6016 dialogs during scans and
+records the M6 advanced sensor provider plan. GUI regression was intentionally
+skipped for this patch per owner direction.
 
 `v0.5.0` is the first M5 release candidate. It includes:
 

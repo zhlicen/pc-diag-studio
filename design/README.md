@@ -6,7 +6,7 @@ This directory records the product thinking, design decisions, architecture, and
 > 1. [STATUS.md](STATUS.md) — current progress, pending work, immediate actions, acceptance tests.
 > 2. [engineering-guardrails.md](engineering-guardrails.md) — the invariants you must not break.
 >
-> M1–M5 are implemented through the local `v0.5.0` release candidate; M6 is planned as an optional advanced-sensors track. See STATUS for the current pushed/local split and remaining manual acceptance.
+> M1–M5 are implemented through `v0.5.1`; M6 is planned as an optional advanced-sensors track. See STATUS for remaining manual acceptance.
 
 ## Documents
 

@@ -6,7 +6,7 @@ reproducing the motivating case's correct conclusion on the IT user's own Dell
 machine. After v0.5.0, M6 is planned as an optional advanced-sensors track.
 
 > **Implementation status lives in [STATUS.md](STATUS.md).** As of 2026-06-12:
-> M1-M3 verified+pushed · M4 code-complete/build-verified+pushed with rollback manual checks pending · M5 sealed as local `v0.5.0` release candidate; M6 advanced sensor plugin planned.
+> M1-M3 verified+pushed · M4 code-complete/build-verified+pushed with rollback manual checks pending · M5 sealed as `v0.5.1`; M6 advanced sensor plugin planned.
 
 ## M1 — Skeleton + Frequency Root-Cause Chain ✅
 
