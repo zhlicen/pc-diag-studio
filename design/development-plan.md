@@ -42,12 +42,48 @@ Scope:
 
 Acceptance: disable a harmless test service, restart app, roll it back from the log record.
 
-## M4 — AI + Polish
+## M4 — Symptom-Driven Diagnosis + Evidence Integrity
+
+Scope from the 2026-06-12 product feedback round (the user's critique: rules
+felt anecdote-driven, no subjective input, shallow power signals, disable
+suggestions lacked justification, data tabs lacked purpose):
+
+1. **Symptom intake**: before a scan the user picks the complaint type
+   (slow boot / always slow / intermittent freezes / fan roar + slow /
+   slow on battery only / one app slow). The symptom steers rule weighting
+   and the primary conclusion answers that complaint explicitly.
+2. **"It's lagging now" marker**: a button during the deep scan stamps the
+   timeline; analysis correlates marked moments with samples (what spiked
+   right then) and reports it as first-class evidence.
+3. **Power delivery signals**: battery discharge rate from root\wmi
+   BatteryStatus (on AC + battery draining = undersized/failing adapter —
+   the measurable version of "swapping the charger fixed it"); adapter
+   wattage best effort; optional HWiNFO shared-memory ingestion (package
+   power, voltage, PROCHOT) when the user runs it — green-exe constraint
+   intact, depth optional.
+4. **De-vendorized trigger layer**: rules trigger on hardware/OS signals
+   only; culprits are discovered from measured data (busy processes/
+   services); vendor knowledge becomes an annotation layer that explains
+   what a discovered component is, never a suspicion list.
+5. **Service knowledge base**: every disable-able service ships a curated
+   entry — what it does, what breaks when disabled, when not to disable.
+   No knowledge entry → no disable button (explain-or-don't-offer rule).
+6. **Evidence linking**: overview evidence lines click through to the
+   matching tab with the relevant rows highlighted; rows referenced by
+   findings are flagged in their tabs.
+7. **Startup item actions**: reversible enable/disable via the
+   StartupApproved registry mechanism, with rollback records like services.
+
+Acceptance: a symptom-led deep scan on the user's Latitude produces a
+conclusion phrased against the chosen symptom, with marker-correlated
+evidence; disabling anything shows its knowledge entry first.
+
+## M5 — AI + Release Polish
 
 Scope:
 
 - AI config UI (Base URL / key / model / enabled), key encrypted via DPAPI, reduced summary with redaction (username, computer name, user paths), AI explanation tab.
-- Open-log-folder button, localization completeness pass.
+- Localization completeness pass.
 - Release build: single portable exe, size check (target well under 100 MB), smoke-test checklist on a second Dell machine.
 
 Acceptance: AI explanation works against an OpenAI-compatible endpoint; key absent from all files on disk in plaintext; copied folder runs cleanly on another machine.
