@@ -163,6 +163,23 @@ func attributeFirmwareAdapter(r *model.DiagnosticReport) *model.AttributionCandi
 			"readings":       len(r.PowerDelivery.Readings),
 		}})
 	}
+	// Driverless OS signal: "% Performance Limit" is Windows reporting that
+	// the processor was actively held below its capability. It is
+	// reason-agnostic (it doesn't say WHY), so it's a supporting signal for
+	// the "something external is limiting me" bucket, not a standalone
+	// accusation. The flags bitmask is platform-unstable, so it's shown as a
+	// raw detail only — never decoded into a named cause.
+	s := r.Sampling
+	if s.HasPerfLimitCounter && s.AvgPerfLimitPercent >= 5 {
+		if s.AvgPerfLimitPercent >= 20 {
+			score += 25
+		} else {
+			score += 15
+		}
+		ev = append(ev, model.Evidence{EvidenceID: "ev.perf-limit", Params: map[string]any{
+			"avgPercent": round1(s.AvgPerfLimitPercent),
+		}})
+	}
 	return candidate(CauseFirmwareAdapter, score, ev)
 }
 

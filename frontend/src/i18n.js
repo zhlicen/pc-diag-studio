@@ -91,6 +91,7 @@ export const COPY = {
       empty: '无数据',
       startupState: { enabled: '已启用', disabled: '已禁用' },
       disableBtn: '禁用',
+      reportPath: '报告文件',
       startupTasksTitle: '计划任务(非系统)',
       utilityCategories: { browser: '浏览器', archive: '压缩工具', assistant: '助手/管家类' },
       ai: {
@@ -166,6 +167,10 @@ export const COPY = {
         title: '你标记的卡顿时刻',
         desc: p => `你在扫描中标记了 ${p.count} 次卡顿,每次对应时刻的采样数据见证据。`,
       },
+      'rule.intermittent-no-markers': {
+        title: '本次未捕获到卡顿时刻',
+        desc: () => '你报告的是间歇性卡死,但本次扫描窗口内没有发生(或没有标记)卡顿。建议运行 3 分钟深度扫描,在感觉卡的瞬间点击"现在卡了!"按钮——工具会对照那一刻的采样数据定位原因。',
+      },
       'rule.no-major-issue': {
         title: '未发现明显瓶颈',
         desc: () => '本次采样窗口内 CPU 频率、内存、磁盘均未触发规则。如果卡顿是间歇性的,请在卡顿发生时运行深度扫描。',
@@ -223,6 +228,7 @@ export const COPY = {
       'ev.vendor-service-count': p => `${p.count} 个 ${(p.vendorLabel || '厂商/平台')} 相关服务正在运行`,
       'ev.vendor-busy': p => `${p.displayName}(进程 ${p.process})CPU ${p.cpuPercent}%、内存 ${p.memMB} MB`,
       'ev.ac-drain': p => `接通电源时电池仍在放电,最高 ${(p.maxDischargeMW / 1000).toFixed(1)} W(${p.readings} 次读数)`,
+      'ev.perf-limit': p => `系统报告处理器平均被限制在最大性能的 ${p.avgPercent}% 以下(Windows 性能限制计数器)`,
       'ev.lag-marker': p => {
         const suspects = { 'clock-drop': '频率骤降', 'disk-burst': '磁盘爆发', 'cpu-burst': 'CPU 满载', 'mem-spike': '内存陡升', none: '指标无异常' };
         return `第 ${p.offsetSec} 秒:频率 ${p.clockMHz} MHz、负载 ${p.loadPercent}%、磁盘 ${p.diskPercent}% → ${suspects[p.suspect] || p.suspect}`;
@@ -329,6 +335,7 @@ export const COPY = {
       empty: 'No data',
       startupState: { enabled: 'Enabled', disabled: 'Disabled' },
       disableBtn: 'Disable',
+      reportPath: 'Report file',
       startupTasksTitle: 'Scheduled Tasks (non-system)',
       utilityCategories: { browser: 'Browser', archive: 'Archiver', assistant: 'Assistant/Manager' },
       ai: {
@@ -404,6 +411,10 @@ export const COPY = {
         title: 'Your Marked Lag Moments',
         desc: p => `You marked ${p.count} lag moment(s) during the scan; the samples from each moment are in the evidence.`,
       },
+      'rule.intermittent-no-markers': {
+        title: 'No Lag Moment Captured This Run',
+        desc: () => 'You reported intermittent freezes, but none occurred (or none were marked) during this scan window. Run the 3-minute deep scan and press "It\'s lagging now!" the moment it freezes — the tool will inspect the samples from exactly that moment.',
+      },
       'rule.no-major-issue': {
         title: 'No Major Bottleneck Detected',
         desc: () => 'CPU frequency, memory, and disk stayed within normal ranges in this sampling window. If the slowdown is intermittent, run the deep scan while it is happening.',
@@ -461,6 +472,7 @@ export const COPY = {
       'ev.vendor-service-count': p => `${p.count} ${(p.vendorLabel || 'OEM/platform')} services running`,
       'ev.vendor-busy': p => `${p.displayName} (process ${p.process}) CPU ${p.cpuPercent}%, memory ${p.memMB} MB`,
       'ev.ac-drain': p => `Battery discharged while on AC, up to ${(p.maxDischargeMW / 1000).toFixed(1)} W (${p.readings} readings)`,
+      'ev.perf-limit': p => `Windows reported the processor held on average ${p.avgPercent}% below maximum performance (Performance Limit counter)`,
       'ev.lag-marker': p => {
         const suspects = { 'clock-drop': 'clock drop', 'disk-burst': 'disk burst', 'cpu-burst': 'CPU saturated', 'mem-spike': 'memory spike', none: 'no metric anomaly' };
         return `At ${p.offsetSec}s: clock ${p.clockMHz} MHz, load ${p.loadPercent}%, disk ${p.diskPercent}% → ${suspects[p.suspect] || p.suspect}`;

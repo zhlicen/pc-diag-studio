@@ -49,6 +49,7 @@ type DiagnosticReport struct {
 	SystemEvents   []EventInfo     `json:"systemEvents"`
 	Analysis       AnalysisResult  `json:"analysis"`
 	CollectorNotes []string        `json:"collectorNotes"` // non-fatal collection failures, for honesty in the report
+	ReportPath     string          `json:"reportPath"`     // where this report was archived (display with localized label)
 }
 
 type ProcessInfo struct {
@@ -209,6 +210,15 @@ type Sample struct {
 	OffsetSec         int     `json:"offsetSec"`
 	CPUPerfPercent    float64 `json:"cpuPerfPercent"` // % Processor Performance (can exceed 100 with boost)
 	EffectiveClockMHz float64 `json:"effectiveClockMHz"`
+	// FreqMaxPercent is "% of Maximum Frequency" — the throttle-rule basis.
+	// On hybrid P/E-core CPUs perf%×base badly overestimates (6 GHz readings
+	// on a 4.3 GHz part), so the direct frequency counters win when present.
+	FreqMaxPercent float64 `json:"freqMaxPercent"`
+	// PerfLimitPercent/Flags come from the optional "% Performance Limit" /
+	// "Performance Limit Flags" counters (driverless PROCHOT/power-limit
+	// signal); zero when those counters are absent on this machine.
+	PerfLimitPercent float64 `json:"perfLimitPercent"`
+	PerfLimitFlags   int     `json:"perfLimitFlags"`
 	CPULoadPercent    float64 `json:"cpuLoadPercent"`
 	MemUsedPercent    float64 `json:"memUsedPercent"`
 	CommitPercent     float64 `json:"commitPercent"`
@@ -221,8 +231,10 @@ type SamplingSummary struct {
 	IntervalSec          int     `json:"intervalSec"`
 	AvgEffectiveClockMHz float64 `json:"avgEffectiveClockMHz"`
 	MinEffectiveClockMHz float64 `json:"minEffectiveClockMHz"`
-	AvgFreqRatioPercent  float64 `json:"avgFreqRatioPercent"`  // avg effective clock vs base clock
-	LowFreqSamplePercent float64 `json:"lowFreqSamplePercent"` // samples below 55% of base
+	AvgFreqRatioPercent  float64 `json:"avgFreqRatioPercent"`  // avg % of max frequency (fallback: effective/base)
+	LowFreqSamplePercent float64 `json:"lowFreqSamplePercent"` // samples below 55% on the same basis
+	HasPerfLimitCounter  bool    `json:"hasPerfLimitCounter"`
+	AvgPerfLimitPercent  float64 `json:"avgPerfLimitPercent"`
 	AvgCPULoadPercent    float64 `json:"avgCpuLoadPercent"`
 	MaxCPULoadPercent    float64 `json:"maxCpuLoadPercent"`
 	AvgMemUsedPercent    float64 `json:"avgMemUsedPercent"`

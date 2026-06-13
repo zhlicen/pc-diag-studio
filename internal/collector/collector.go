@@ -61,7 +61,11 @@ func CollectFor(ctx context.Context, mode model.ScanMode, durationSec, intervalS
 	go func() {
 		defer wg.Done()
 		sensorSnap = sensors.Collect(ctx)
-		if sensorSnap.Status != "ok" && sensorSnap.Detail != "" {
+		// Zero-setup principle: an absent provider is the normal case and
+		// must not surface any "go install/configure X" guidance to the user.
+		// Only a provider that exists but failed is worth a (debug) note;
+		// the full detail stays in the JSON report's sensors.detail field.
+		if sensorSnap.Status == "failed" && sensorSnap.Detail != "" {
 			noteSets[8] = append(noteSets[8], sensorSnap.Detail)
 		}
 	}()

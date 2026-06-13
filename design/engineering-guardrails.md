@@ -56,6 +56,13 @@ These came from the owner (company IT, Dell fleet) reviewing real output:
   (frequency, power, thermal, IO, memory). Vendor knowledge annotates
   discovered culprits; it must never be the trigger. This is what makes the
   tool extensible to Lenovo/HP later.
+- **Zero-setup principle.** The tool never asks the end user to install or
+  configure anything (HWiNFO, agents, drivers) to get a diagnosis. Optional
+  data sources (HWiNFO shared memory, Dell Command | Monitor WMI) are used
+  silently when they happen to exist and degrade silently when absent — an
+  absent provider is the normal case and must produce no user-facing
+  guidance. Fleet-wide agents are an IT deployment decision documented in
+  the docs, never an in-app prompt.
 - Scoring stays within the category budgets in
   [diagnostic-logic.md](diagnostic-logic.md). Don't double-charge a
   category (e.g. power-saver is not deducted when frequency already is).
@@ -65,6 +72,10 @@ These came from the owner (company IT, Dell fleet) reviewing real output:
 - Performance counters: ONLY via `PdhAddEnglishCounterW`
   (`internal/collector/pdh_windows.go`). `Get-Counter` with English paths
   breaks on Chinese Windows. Never parse localized counter names.
+- Effective CPU clock must prefer
+  `\Processor Information(_Total)\Processor Frequency` (direct MHz).
+  `% Processor Performance × base/max clock` is fallback only; it can report
+  physically impossible values on hybrid CPUs.
 - `powercfg` output: parse ONLY GUIDs and `0x` hex indexes; the labels are
   localized. Hidden settings need the `/qh` fallback (already implemented).
 - Every PowerShell invocation must keep the

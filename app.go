@@ -112,7 +112,7 @@ func (a *App) RunScan(mode string, symptom string) (*model.DiagnosticReport, err
 	if path, err := writeReport(&report); err != nil {
 		report.CollectorNotes = append(report.CollectorNotes, "write report: "+err.Error())
 	} else {
-		report.CollectorNotes = append(report.CollectorNotes, "report: "+path)
+		report.ReportPath = path
 	}
 	return &report, nil
 }

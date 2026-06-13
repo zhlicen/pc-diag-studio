@@ -27,6 +27,21 @@ func sampleSeries(ctx context.Context, totalSamples, intervalSec, baseClockMHz i
 		}
 	}
 	addOrNote("perf", `\Processor Information(_Total)\% Processor Performance`)
+	// Direct frequency counters are the primary source: on hybrid P/E-core
+	// CPUs (Core Ultra), perf%×base overestimates wildly (observed 6 GHz on a
+	// 4.3 GHz part). % of Maximum Frequency is also the same basis powercfg's
+	// max-processor-state cap operates on.
+	freqDirect := q.addCounter("freqMHz", `\Processor Information(_Total)\Processor Frequency`) == nil
+	if !freqDirect {
+		*notes = append(*notes, "pdh: Processor Frequency counter unavailable; falling back to perf%×base estimate")
+	}
+	_ = q.addCounter("freqMaxPct", `\Processor Information(_Total)\% of Maximum Frequency`)
+	// Optional driverless throttle-reason counters (present on many Intel
+	// machines via intelppm). Absence is normal and silently tolerated.
+	hasPerfLimit := q.addCounter("perfLimit", `\Processor Information(_Total)\% Performance Limit`) == nil
+	if hasPerfLimit {
+		_ = q.addCounter("perfLimitFlags", `\Processor Information(_Total)\Performance Limit Flags`)
+	}
 	// % Processor Utility matches Task Manager on modern Windows; fall back to
 	// the classic % Processor Time when unavailable.
 	if err := q.addCounter("load", `\Processor Information(_Total)\% Processor Utility`); err != nil {
@@ -62,7 +77,20 @@ func sampleSeries(ctx context.Context, totalSamples, intervalSec, baseClockMHz i
 		s := model.Sample{OffsetSec: (i + 1) * intervalSec}
 		if v, ok := q.value("perf"); ok {
 			s.CPUPerfPercent = v
-			s.EffectiveClockMHz = v / 100 * float64(baseClockMHz)
+		}
+		if v, ok := q.value("freqMHz"); ok && v > 0 {
+			s.EffectiveClockMHz = v
+		} else if s.CPUPerfPercent > 0 {
+			s.EffectiveClockMHz = s.CPUPerfPercent / 100 * float64(baseClockMHz)
+		}
+		if v, ok := q.value("freqMaxPct"); ok && v > 0 {
+			s.FreqMaxPercent = v
+		}
+		if v, ok := q.value("perfLimit"); ok {
+			s.PerfLimitPercent = v
+		}
+		if v, ok := q.value("perfLimitFlags"); ok {
+			s.PerfLimitFlags = int(v)
 		}
 		if v, ok := q.value("load"); ok {
 			if v > 100 {
@@ -100,9 +128,9 @@ func summarize(samples []model.Sample, intervalSec, baseClockMHz int) model.Samp
 	if len(samples) == 0 {
 		return sum
 	}
-	var clock, load, mem, commit, diskAct, diskQ float64
+	var clock, load, mem, commit, diskAct, diskQ, ratioSum, perfLimitSum float64
 	minClock := samples[0].EffectiveClockMHz
-	lowFreq := 0
+	lowFreq, ratioCount, perfLimitCount := 0, 0, 0
 	for _, s := range samples {
 		clock += s.EffectiveClockMHz
 		load += s.CPULoadPercent
@@ -119,17 +147,36 @@ func summarize(samples []model.Sample, intervalSec, baseClockMHz int) model.Samp
 		if s.MemUsedPercent > sum.MaxMemUsedPercent {
 			sum.MaxMemUsedPercent = s.MemUsedPercent
 		}
-		if baseClockMHz > 0 && s.EffectiveClockMHz/float64(baseClockMHz)*100 < 55 {
-			lowFreq++
+		// Ratio basis: prefer the direct "% of Maximum Frequency" counter —
+		// the same basis the max-processor-state cap operates on. Fallback to
+		// effective/base only when the counter is missing.
+		ratio := s.FreqMaxPercent
+		if ratio <= 0 && baseClockMHz > 0 && s.EffectiveClockMHz > 0 {
+			ratio = s.EffectiveClockMHz / float64(baseClockMHz) * 100
+		}
+		if ratio > 0 {
+			ratioSum += ratio
+			ratioCount++
+			if ratio < 55 {
+				lowFreq++
+			}
+		}
+		if s.PerfLimitPercent > 0 {
+			perfLimitSum += s.PerfLimitPercent
+			perfLimitCount++
 		}
 	}
 	n := float64(len(samples))
 	sum.AvgEffectiveClockMHz = clock / n
 	sum.MinEffectiveClockMHz = minClock
-	if baseClockMHz > 0 {
-		sum.AvgFreqRatioPercent = sum.AvgEffectiveClockMHz / float64(baseClockMHz) * 100
+	if ratioCount > 0 {
+		sum.AvgFreqRatioPercent = ratioSum / float64(ratioCount)
+		sum.LowFreqSamplePercent = float64(lowFreq) / float64(ratioCount) * 100
 	}
-	sum.LowFreqSamplePercent = float64(lowFreq) / n * 100
+	if perfLimitCount > 0 {
+		sum.HasPerfLimitCounter = true
+		sum.AvgPerfLimitPercent = perfLimitSum / float64(perfLimitCount)
+	}
 	sum.AvgCPULoadPercent = load / n
 	sum.AvgMemUsedPercent = mem / n
 	sum.AvgCommitPercent = commit / n

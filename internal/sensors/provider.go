@@ -10,7 +10,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math"
 	"os"
 	"os/exec"
@@ -26,16 +25,18 @@ const (
 	providerTimeout = 5 * time.Second
 )
 
-// Collect runs the first configured provider and returns a normalized snapshot.
-// Absence or provider failure is non-fatal; callers should surface Detail as a
-// collector note rather than fail the scan.
+// Collect tries sensor sources in priority order: an explicitly configured
+// external provider exe wins (user intent), then Dell Command | Monitor WMI
+// when present, else absent. Absence is the normal case (zero-setup
+// principle) and carries no user-facing guidance; only a provider that
+// exists but failed surfaces Detail as a collector note.
 func Collect(ctx context.Context) model.SensorSnapshot {
 	path, ok := findProvider()
 	if !ok {
-		return model.SensorSnapshot{
-			Status: "absent",
-			Detail: fmt.Sprintf("advanced sensors: no external provider found; set %s or place providers\\sensor-provider.exe next to the app", envProviderPath),
+		if snap, dcmOK := collectDCM(ctx); dcmOK {
+			return snap
 		}
+		return model.SensorSnapshot{Status: "absent"}
 	}
 
 	runCtx, cancel := context.WithTimeout(ctx, providerTimeout)

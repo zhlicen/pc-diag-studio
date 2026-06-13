@@ -23,7 +23,11 @@ const (
 	RuleDuplicateUtilities  = "rule.duplicate-utilities"
 	RuleAdapterUnderpowered = "rule.adapter-underpowered"
 	RuleLagMoments          = "rule.lag-moments"
-	RuleNoMajorIssue        = "rule.no-major-issue"
+	// RuleIntermittentNoMarkers is guidance, not a finding: the user reported
+	// intermittent freezes but this scan captured none, so the honest primary
+	// conclusion is "run a deep scan and press the lag button when it happens".
+	RuleIntermittentNoMarkers = "rule.intermittent-no-markers"
+	RuleNoMajorIssue          = "rule.no-major-issue"
 )
 
 // symptomPreferredRules steers which finding becomes the primary conclusion
@@ -268,10 +272,17 @@ func Analyze(r *model.DiagnosticReport) {
 	} else if primary := symptomPrimary(r.Symptom, a.Findings); primary != nil {
 		a.PrimaryRuleID = primary.RuleID
 		a.PrimaryParams = primary.Params
-	} else if len(a.Findings) > 0 {
-		a.PrimaryRuleID = a.Findings[0].RuleID
-		a.PrimaryParams = a.Findings[0].Params
+	} else if r.Symptom == model.SymptomIntermittent && len(r.LagMarkers) == 0 {
+		// The user's complaint is intermittent and nothing was captured —
+		// honest guidance beats promoting an unrelated finding.
+		a.PrimaryRuleID = RuleIntermittentNoMarkers
+		a.PrimaryParams = map[string]any{}
+	} else if primary := firstActionableFinding(a.Findings); primary != nil {
+		a.PrimaryRuleID = primary.RuleID
+		a.PrimaryParams = primary.Params
 	} else {
+		// Only info-level context (or nothing) — that is "no major issue",
+		// not a problem statement.
 		a.PrimaryRuleID = RuleNoMajorIssue
 		a.PrimaryParams = map[string]any{}
 	}
@@ -303,11 +314,24 @@ func memFinding(s model.SamplingSummary, severity string) model.Finding {
 	}
 }
 
+// firstActionableFinding returns the first warning/critical finding.
+// Info-level findings are context and must never become the primary
+// conclusion — a conclusion that says "this is normal" answers nothing.
+func firstActionableFinding(findings []model.Finding) *model.Finding {
+	for i := range findings {
+		if findings[i].Severity != "info" {
+			return &findings[i]
+		}
+	}
+	return nil
+}
+
 // symptomPrimary returns the finding the user's symptom points at, if any.
+// Info-level findings are skipped for the same reason as above.
 func symptomPrimary(symptom string, findings []model.Finding) *model.Finding {
 	for _, rid := range symptomPreferredRules[symptom] {
 		for i := range findings {
-			if findings[i].RuleID == rid {
+			if findings[i].RuleID == rid && findings[i].Severity != "info" {
 				return &findings[i]
 			}
 		}

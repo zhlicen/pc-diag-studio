@@ -452,10 +452,11 @@ function renderOverview(ui, r, a) {
       <div class="block-title">${ui.findings}</div>
       ${findings || `<p class="hint">${ruleText(state.lang, 'rule.no-major-issue', {}).desc}</p>`}
     </section>
-    ${(r.collectorNotes && r.collectorNotes.length) ? `
+    ${(r.reportPath || (r.collectorNotes && r.collectorNotes.length)) ? `
     <section class="panel notes">
       <div class="block-title">${ui.collectorNotes}</div>
-      <ul>${r.collectorNotes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>
+      ${r.reportPath ? `<p class="hint">${ui.reportPath}: ${esc(r.reportPath)}</p>` : ''}
+      ${(r.collectorNotes && r.collectorNotes.length) ? `<ul>${r.collectorNotes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}
     </section>` : ''}`;
 }
 

@@ -399,6 +399,8 @@ export namespace model {
 	    minEffectiveClockMHz: number;
 	    avgFreqRatioPercent: number;
 	    lowFreqSamplePercent: number;
+	    hasPerfLimitCounter: boolean;
+	    avgPerfLimitPercent: number;
 	    avgCpuLoadPercent: number;
 	    maxCpuLoadPercent: number;
 	    avgMemUsedPercent: number;
@@ -419,6 +421,8 @@ export namespace model {
 	        this.minEffectiveClockMHz = source["minEffectiveClockMHz"];
 	        this.avgFreqRatioPercent = source["avgFreqRatioPercent"];
 	        this.lowFreqSamplePercent = source["lowFreqSamplePercent"];
+	        this.hasPerfLimitCounter = source["hasPerfLimitCounter"];
+	        this.avgPerfLimitPercent = source["avgPerfLimitPercent"];
 	        this.avgCpuLoadPercent = source["avgCpuLoadPercent"];
 	        this.maxCpuLoadPercent = source["maxCpuLoadPercent"];
 	        this.avgMemUsedPercent = source["avgMemUsedPercent"];
@@ -432,6 +436,9 @@ export namespace model {
 	    offsetSec: number;
 	    cpuPerfPercent: number;
 	    effectiveClockMHz: number;
+	    freqMaxPercent: number;
+	    perfLimitPercent: number;
+	    perfLimitFlags: number;
 	    cpuLoadPercent: number;
 	    memUsedPercent: number;
 	    commitPercent: number;
@@ -447,6 +454,9 @@ export namespace model {
 	        this.offsetSec = source["offsetSec"];
 	        this.cpuPerfPercent = source["cpuPerfPercent"];
 	        this.effectiveClockMHz = source["effectiveClockMHz"];
+	        this.freqMaxPercent = source["freqMaxPercent"];
+	        this.perfLimitPercent = source["perfLimitPercent"];
+	        this.perfLimitFlags = source["perfLimitFlags"];
 	        this.cpuLoadPercent = source["cpuLoadPercent"];
 	        this.memUsedPercent = source["memUsedPercent"];
 	        this.commitPercent = source["commitPercent"];
@@ -678,6 +688,7 @@ export namespace model {
 	    systemEvents: EventInfo[];
 	    analysis: AnalysisResult;
 	    collectorNotes: string[];
+	    reportPath: string;
 
 	    static createFrom(source: any = {}) {
 	        return new DiagnosticReport(source);
@@ -710,6 +721,7 @@ export namespace model {
 	        this.systemEvents = this.convertValues(source["systemEvents"], EventInfo);
 	        this.analysis = this.convertValues(source["analysis"], AnalysisResult);
 	        this.collectorNotes = source["collectorNotes"];
+	        this.reportPath = source["reportPath"];
 	    }
 
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

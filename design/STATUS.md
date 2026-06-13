@@ -1,6 +1,6 @@
 # Project Status & Handoff
 
-> Last updated: 2026-06-12. This file is the single source of truth for
+> Last updated: 2026-06-13. This file is the single source of truth for
 > project progress. **Any contributor (human or AI) must read this and
 > [engineering-guardrails.md](engineering-guardrails.md) before changing code.**
 
@@ -25,7 +25,7 @@
 | M3 actions + fail-closed rollback | done | done | done (user ran app; encoding/style fixes verified) | done | done |
 | M4 symptom-driven diagnosis (see below) | done | done (`go build` + `wails build`) | GUI/actions partially checked; rollback manual tests pending | done | done |
 | M5 AI + release polish | done | done (`npm run build` + `go test` + `wails build`) | AI endpoint verified; second-PC smoke pending | done (`v0.5.1`) | done |
-| M6 advanced sensor provider bridge | partial | done (`go test` + `npm run build` + `wails build`) | HWiNFO Shared Memory observed by owner; GUI needs more polish | pending | pending |
+| M6 advanced sensor provider bridge | partial | done (`go build` + `go test` + `npm run build` + `wails build`) | HWiNFO Shared Memory observed; frequency fix colltest-verified; GUI polish pending | done | done |
 
 ## Release checkpoint
 
@@ -219,6 +219,69 @@ Remaining M6 acceptance:
   helper.
 - LibreHardwareMonitor helper remains deferred.
 
+## Known issues (owner review of v0.5.1 GUI, 2026-06-13)
+
+> Status: code fixes for all four are written and build-verified. This does
+> not seal a release; M6 still needs GUI/product polish and broader machine
+> validation.
+
+1. **Hybrid-CPU effective clock is wrong (CRITICAL).** Core Ultra 5 125U
+   showed avg 6054 MHz / min 5004 MHz — physically impossible (turbo max
+   4.3 GHz). `% Processor Performance × MaxClockSpeed` overestimates on
+   hybrid P/E-core CPUs, and the 55%-of-base low-frequency rule can no
+   longer fire. → FIX VERIFIED: sampler now prefers
+   `\Processor Information(_Total)\Processor Frequency` (direct MHz) for the
+   effective clock and `% of Maximum Frequency` for the ratio/low-freq basis;
+   perf%×base is fallback only. 10-second colltest on 2026-06-13 reported
+   avg/min 928 MHz, `hasPerfLimitCounter=true`, and `avgPerfLimitPercent=45`.
+2. **Info-severity finding became the primary conclusion.** → FIX VERIFIED:
+   `firstActionableFinding` + symptomPrimary now skip info-severity findings;
+   intermittent symptom with zero lag markers yields the new guidance rule
+   `rule.intermittent-no-markers` (zh+en).
+3. **Collector note shows English to end users.** → FIX VERIFIED: report path
+   moved to `report.ReportPath` (localized `ui.reportPath` label); sensor
+   "absent" no longer emits any note (zero-setup principle); only a provider
+   that EXISTS but FAILED emits a debug note.
+4. Window icon still default Wails "W". → FIX VERIFIED: `cmd/makeicon`
+   generated teal pulse-line `build/windows/icon.ico` + `build/appicon.png`;
+   `wails build` completed afterward.
+
+## Verified changes (2026-06-13)
+
+Completed verification:
+
+- `go run ./cmd/makeicon`
+- `go build ./...`
+- `go run ./cmd/colltest -duration 10 -interval 1`
+- `go test ./...`
+- `npm run build --prefix frontend`
+- `wails build`
+- `git diff --check`
+
+- `internal/model`: Sample gains FreqMaxPercent / PerfLimitPercent /
+  PerfLimitFlags; SamplingSummary gains HasPerfLimitCounter /
+  AvgPerfLimitPercent; DiagnosticReport gains ReportPath.
+- `internal/collector/sampler.go`: direct frequency counters + driverless
+  `% Performance Limit` / `Performance Limit Flags` (Intel PROCHOT/power-limit
+  signal, absent on some machines — tolerated). Ratio/low-freq use % of max.
+- `internal/sensors`: zero-setup — absent provider is silent; added
+  `dcm_windows.go` reading Dell Command | Monitor `root\dcim\sysman`
+  DCIM_NumericSensor (temp/voltage/fan). **Schema-correct but unvalidated on
+  a DCM machine** — owner is checking whether DCM is installed.
+- `internal/analyzer/analyzer.go`: info findings never primary;
+  intermittent-no-markers guidance.
+- `cmd/makeicon`: standard-library icon generator (teal pulse line).
+- `internal/analyzer/attribution.go`: `% Performance Limit` now feeds the
+  firmware-adapter candidate as a reason-agnostic "OS measured the CPU held
+  below max" signal (ev.perf-limit, +15/+25). DCM temperature was already
+  wired via maxSensorTemperature(). Performance Limit Flags bitmask is NOT
+  decoded into named causes (platform-unstable — honest-inconclusive rule).
+- Privacy improvement: report path moved out of collectorNotes into
+  ReportPath, which is NOT in the AI summary allow-list — the local path
+  (with username) no longer reaches the AI endpoint at all.
+- Remaining wiring idea (optional): expose AvgPerfLimitPercent in the
+  overview UI as a compact "OS-reported limiting" stat.
+
 ## Future expectations
 
 - **Post-v0.5.0 polish**: second-machine smoke test, broader localization copy
@@ -233,8 +296,11 @@ Remaining M6 acceptance:
 ## History of design corrections (do not regress)
 
 - Quick scan needs 1s sampling (15 samples); 5s interval would yield only 3.
-- `Win32_Processor.CurrentClockSpeed` is unreliable on modern Intel — the
-  effective clock MUST come from PDH `% Processor Performance` × base clock.
+- `Win32_Processor.CurrentClockSpeed` is unreliable on modern Intel, and
+  `% Processor Performance × base/max clock` overstates effective frequency
+  on hybrid CPUs. Effective clock MUST prefer PDH
+  `\Processor Information(_Total)\Processor Frequency` (direct MHz);
+  `% Processor Performance × base clock` is fallback only.
 - BITS was once misclassified as Intel ("Background **Intel**ligent...") —
   vendor matching must stay word-boundary based.
 - Vendor service count was once a warning; the owner correctly called it
