@@ -201,6 +201,10 @@ Completed M6 checks:
 
 - Owner enabled HWiNFO Sensors + Shared Memory and confirmed the provider path
   can read data.
+- Owner installed Dell Command | Monitor 10.13.1.198; admin PowerShell
+  confirmed `DCIM_NumericSensor` exists and returns CPU/SKIN/OTHER/DIMM
+  temperature plus processor fan RPM. Non-admin access is denied, so DCM data
+  is available only when the app runs elevated.
 - `go test ./...`
 - `npm run build`
 - `wails build`
@@ -212,8 +216,9 @@ Remaining M6 acceptance:
 - GUI polish: turn the Advanced Sensors block into a deliberate diagnostic
   summary instead of a raw sensor dump (initial compaction is in place, but
   owner correctly flagged the first UI as half-finished).
-- Validate sensor labels and units across at least one Intel and one AMD/other
-  laptop, because HWiNFO labels vary by platform.
+- Validate HWiNFO labels and units across at least one AMD/other laptop,
+  because HWiNFO labels vary by platform. DCM has been validated on one Dell
+  Intel laptop with admin access.
 - Decide packaging: whether release zips should include
   `providers\sensor-provider.exe` by default or document it as an optional
   helper.
@@ -266,8 +271,10 @@ Completed verification:
   signal, absent on some machines — tolerated). Ratio/low-freq use % of max.
 - `internal/sensors`: zero-setup — absent provider is silent; added
   `dcm_windows.go` reading Dell Command | Monitor `root\dcim\sysman`
-  DCIM_NumericSensor (temp/voltage/fan). **Schema-correct but unvalidated on
-  a DCM machine** — owner is checking whether DCM is installed.
+  DCIM_NumericSensor (temp/voltage/fan). Validated on a Dell Latitude with
+  Dell Command | Monitor 10.13.1.198 under admin PowerShell. Dell reports
+  temperatures as raw Celsius even when `UnitModifier=-1`, so DCM temperature
+  scaling keeps plausible raw Celsius values.
 - `internal/analyzer/analyzer.go`: info findings never primary;
   intermittent-no-markers guidance.
 - `cmd/makeicon`: standard-library icon generator (teal pulse line).

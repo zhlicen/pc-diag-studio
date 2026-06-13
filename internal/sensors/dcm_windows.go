@@ -68,7 +68,7 @@ func collectDCM(ctx context.Context) (model.SensorSnapshot, bool) {
 		if !known || row.CurrentReading == nil {
 			continue
 		}
-		value := *row.CurrentReading * math.Pow10(row.UnitModifier)
+		value := dcmValue(*row.CurrentReading, row.UnitModifier, mapping.kind)
 		name := strings.TrimSpace(row.ElementName)
 		if name == "" || !validValue(value) {
 			continue
@@ -94,4 +94,17 @@ func collectDCM(ctx context.Context) (model.SensorSnapshot, bool) {
 		CapturedAt: time.Now().Format(time.RFC3339),
 		Readings:   readings,
 	}, true
+}
+
+func dcmValue(raw float64, unitModifier int, kind string) float64 {
+	value := raw * math.Pow10(unitModifier)
+	// Dell Command | Monitor 10.13 reports temperature readings such as
+	// CurrentReading=53, UnitModifier=-1 for a real 53 C CPU sensor. Applying
+	// the DMTF modifier literally would turn that into 5.3 C, so prefer the
+	// raw value when the scaled value is implausibly low and the raw value is
+	// itself a plausible Celsius reading.
+	if kind == "temperature" && value < 15 && raw >= 15 && raw < 130 {
+		return raw
+	}
+	return value
 }
