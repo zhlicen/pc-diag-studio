@@ -270,9 +270,33 @@ html, body {
 .mini-charts .spark { height: 70px; }
 .mini-title { font-size: 11.5px; color: var(--text-dim); margin-bottom: 4px; }
 
+.sensors-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.sensor-panel-head {
+  align-items: start;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+}
+
+.sensor-status {
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+
+.sensor-status-good { background: var(--good-bg); color: var(--teal-dark); }
+.sensor-status-warn { background: var(--amber-bg); color: var(--amber); }
+.sensor-status-bad { background: var(--red-bg); color: var(--red); }
+
 .sensor-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 10px;
 }
 
@@ -282,7 +306,7 @@ html, body {
   border-radius: 8px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: auto auto;
+  grid-template-rows: auto auto auto;
   column-gap: 12px;
   min-width: 0;
   padding: 12px 14px;
@@ -299,14 +323,22 @@ html, body {
 .sensor-pill strong {
   align-self: end;
   color: var(--text-main);
-  font-size: 22px;
-  grid-row: 1 / span 2;
+  font-size: 24px;
+  grid-row: 1 / span 3;
   line-height: 1;
 }
 
 .sensor-unit {
   color: var(--text-dim);
   font-size: 12px;
+}
+
+.sensor-raw {
+  color: var(--text-dim);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Actions */

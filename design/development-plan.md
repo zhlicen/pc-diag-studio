@@ -116,9 +116,10 @@ Scope:
   or silently install HWiNFO.
 - Current implementation: `cmd/hwinfo-provider` reads
   `Global\HWiNFO_SENS_SM2`, respects the HWiNFO mutex when available, and
-  emits summarized key readings rather than every raw per-core value. The
-  helper is optional and must be built/copied as
-  `providers\sensor-provider.exe` for packaged GUI testing.
+  emits summarized key readings rather than every raw per-core value. Packaged
+  GUI builds automatically compile it to
+  `build\bin\providers\sensor-provider.exe`; at runtime, if HWiNFO is absent,
+  the app falls through to Dell Command | Monitor WMI when available.
 - LibreHardwareMonitor provider: prototype a small helper process that uses
   `LibreHardwareMonitorLib` and emits normalized JSON. The helper must be
   optional, read-only, and explicit about admin/driver requirements.

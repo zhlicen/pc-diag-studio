@@ -188,6 +188,12 @@ Implemented but not yet release-sealed:
 - Added `cmd/hwinfo-provider`, a read-only HWiNFO Shared Memory helper. It
   emits `status: absent` when HWiNFO Shared Memory is unavailable instead of
   failing the scan.
+- `wails build` now automatically builds the HWiNFO helper into
+  `build\bin\providers\sensor-provider.exe`; manual copying is no longer
+  needed for local packaged GUI testing.
+- Sensor discovery is fully automatic: bundled HWiNFO helper wins when it
+  returns readings; if it is merely absent/unavailable, the app falls through
+  to Dell Command | Monitor WMI when available.
 - HWiNFO helper summarizes noisy raw readings down to key metrics:
   CPU package/core temperature, CPU package/core power, CPU voltage, and fan
   speed where available.
@@ -213,9 +219,9 @@ Completed M6 checks:
 
 Remaining M6 acceptance:
 
-- GUI polish: turn the Advanced Sensors block into a deliberate diagnostic
-  summary instead of a raw sensor dump (initial compaction is in place, but
-  owner correctly flagged the first UI as half-finished).
+- GUI polish: Advanced Sensors now has automatic source/status display and a
+  compact diagnostic summary. Continue validating layout with real HWiNFO and
+  DCM readings before release sealing.
 - Validate HWiNFO labels and units across at least one AMD/other laptop,
   because HWiNFO labels vary by platform. DCM has been validated on one Dell
   Intel laptop with admin access.
@@ -275,6 +281,8 @@ Completed verification:
   Dell Command | Monitor 10.13.1.198 under admin PowerShell. Dell reports
   temperatures as raw Celsius even when `UnitModifier=-1`, so DCM temperature
   scaling keeps plausible raw Celsius values.
+- `wails.json` runs `scripts\build-sensor-provider.ps1` during frontend build,
+  so packaged GUI builds automatically include the optional HWiNFO helper.
 - `internal/analyzer/analyzer.go`: info findings never primary;
   intermittent-no-markers guidance.
 - `cmd/makeicon`: standard-library icon generator (teal pulse line).

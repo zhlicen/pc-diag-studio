@@ -24,10 +24,16 @@ import (
 
 const dcmScript = `
 [Console]::OutputEncoding=[System.Text.Encoding]::UTF8
-$s = Get-CimInstance -Namespace root\dcim\sysman -ClassName DCIM_NumericSensor -ErrorAction SilentlyContinue |
-    Select-Object ElementName, CurrentReading, SensorType, UnitModifier
-if ($null -eq $s) { '[]' } else { ConvertTo-Json -InputObject @($s) -Depth 2 }
+try {
+    $s = Get-CimInstance -Namespace root\dcim\sysman -ClassName DCIM_NumericSensor -ErrorAction Stop |
+        Select-Object ElementName, CurrentReading, SensorType, UnitModifier
+    if ($null -eq $s) { '[]' } else { ConvertTo-Json -InputObject @($s) -Depth 2 }
+} catch {
+    [pscustomobject]@{ error = $_.Exception.Message; hresult = ('0x{0:X8}' -f $_.Exception.HResult) } | ConvertTo-Json
+}
 `
+
+const dcmTimeout = 10 * time.Second
 
 // CIM sensor types we can map to normalized kinds.
 var dcmSensorKinds = map[int]struct {
@@ -41,7 +47,7 @@ var dcmSensorKinds = map[int]struct {
 }
 
 func collectDCM(ctx context.Context) (model.SensorSnapshot, bool) {
-	runCtx, cancel := context.WithTimeout(ctx, providerTimeout)
+	runCtx, cancel := context.WithTimeout(ctx, dcmTimeout)
 	defer cancel()
 	cmd := exec.CommandContext(runCtx, "powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", dcmScript)
 	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true, CreationFlags: 0x08000000}
@@ -58,6 +64,20 @@ func collectDCM(ctx context.Context) (model.SensorSnapshot, bool) {
 		UnitModifier   int      `json:"UnitModifier"`
 	}
 	out := bytes.TrimPrefix(bytes.TrimSpace(stdout.Bytes()), []byte{0xEF, 0xBB, 0xBF})
+	var probeErr struct {
+		Error   string `json:"error"`
+		HResult string `json:"hresult"`
+	}
+	if err := json.Unmarshal(out, &probeErr); err == nil && probeErr.Error != "" {
+		if strings.Contains(strings.ToLower(probeErr.Error), "access denied") || strings.EqualFold(probeErr.HResult, "0x80041003") {
+			return model.SensorSnapshot{
+				Provider: "dell-command-monitor",
+				Status:   "denied",
+				Detail:   "Dell Command | Monitor sensor WMI requires elevated access",
+			}, true
+		}
+		return model.SensorSnapshot{}, false
+	}
 	if err := json.Unmarshal(out, &rows); err != nil || len(rows) == 0 {
 		return model.SensorSnapshot{}, false
 	}

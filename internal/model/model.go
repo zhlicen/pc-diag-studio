@@ -166,7 +166,7 @@ type BatteryReading struct {
 // Providers live outside the green main executable and emit normalized JSON.
 type SensorSnapshot struct {
 	Provider   string          `json:"provider"`
-	Status     string          `json:"status"` // ok / absent / failed
+	Status     string          `json:"status"` // ok / absent / denied / failed
 	CapturedAt string          `json:"capturedAt"`
 	Readings   []SensorReading `json:"readings"`
 	Detail     string          `json:"detail"`
@@ -217,8 +217,8 @@ type Sample struct {
 	// PerfLimitPercent/Flags come from the optional "% Performance Limit" /
 	// "Performance Limit Flags" counters (driverless PROCHOT/power-limit
 	// signal); zero when those counters are absent on this machine.
-	PerfLimitPercent float64 `json:"perfLimitPercent"`
-	PerfLimitFlags   int     `json:"perfLimitFlags"`
+	PerfLimitPercent  float64 `json:"perfLimitPercent"`
+	PerfLimitFlags    int     `json:"perfLimitFlags"`
 	CPULoadPercent    float64 `json:"cpuLoadPercent"`
 	MemUsedPercent    float64 `json:"memUsedPercent"`
 	CommitPercent     float64 `json:"commitPercent"`

@@ -63,6 +63,12 @@ func Collect(ctx context.Context) model.SensorSnapshot {
 	if snap.Status == "" {
 		snap.Status = "ok"
 	}
+	if snap.Status == "absent" {
+		if dcmSnap, dcmOK := collectDCM(ctx); dcmOK {
+			return dcmSnap
+		}
+		return model.SensorSnapshot{Status: "absent"}
+	}
 	return snap
 }
 

@@ -381,15 +381,71 @@ function table(headers, rows, emptyText, refs) {
     </div>`;
 }
 
+function sensorProviderName(ui, provider) {
+  return ui.sensors.providers[provider] || provider || ui.sensors.providers.auto;
+}
+
+function sensorStatusMeta(ui, sensors) {
+  if (!sensors || !sensors.status || sensors.status === 'absent') return null;
+  const status = ui.sensors.status[sensors.status] || sensors.status;
+  const cls = sensors.status === 'ok' ? 'good' : (sensors.status === 'denied' ? 'warn' : 'bad');
+  const detail = sensors.status === 'ok'
+    ? ui.sensors.autoDetected
+    : (sensors.status === 'denied' ? ui.sensors.needsAdmin : (sensors.detail || ui.sensors.unavailable));
+  return { status, cls, detail };
+}
+
+function sensorTitle(ui, reading) {
+  const name = String(reading.name || '').toLowerCase();
+  const labels = ui.sensors.labels;
+  if (reading.kind === 'temperature') {
+    if (name.includes('cpu') || name.includes('package')) return labels.cpuTemp;
+    if (name.includes('skin')) return labels.skinTemp;
+    if (name.includes('dimm') || name.includes('memory')) return labels.memoryTemp;
+    return labels.temperature;
+  }
+  if (reading.kind === 'fan') return labels.fan;
+  if (reading.kind === 'power') return name.includes('core') ? labels.corePower : labels.packagePower;
+  if (reading.kind === 'voltage') return labels.voltage;
+  return reading.name || labels.other;
+}
+
+function sensorValue(reading) {
+  const n = Number(reading.value);
+  if (!Number.isFinite(n)) return '-';
+  if (reading.kind === 'fan') return n.toFixed(0);
+  if (reading.kind === 'voltage') return n.toFixed(3);
+  if (reading.kind === 'temperature') return n.toFixed(0);
+  return n.toFixed(1);
+}
+
+function renderSensorPanel(ui, sensors) {
+  const meta = sensorStatusMeta(ui, sensors);
+  if (!meta) return '';
+  const readings = sensors.status === 'ok' ? (sensors.readings || []) : [];
+  const cards = readings.map(reading => `
+    <div class="sensor-pill sensor-${esc(reading.kind)}">
+      <span class="sensor-name">${esc(sensorTitle(ui, reading))}</span>
+      <strong>${sensorValue(reading)}</strong>
+      <span class="sensor-unit">${esc(reading.unit)}</span>
+      <span class="sensor-raw">${esc(reading.name)}</span>
+    </div>`).join('');
+  return `
+    <section class="panel sensors-panel">
+      <div class="sensor-panel-head">
+        <div>
+          <div class="block-title">${ui.advancedSensors}</div>
+          <p class="hint">${ui.sensors.source}: ${esc(sensorProviderName(ui, sensors.provider))}</p>
+        </div>
+        <span class="sensor-status sensor-status-${meta.cls}">${esc(meta.status)}</span>
+      </div>
+      ${cards ? `<div class="sensor-grid">${cards}</div>` : `<p class="hint">${esc(meta.detail)}</p>`}
+      ${cards ? `<p class="hint">${esc(meta.detail)}</p>` : ''}
+    </section>`;
+}
+
 function renderOverview(ui, r, a) {
-  const sensorRows = (r.sensors?.status === 'ok' && r.sensors.readings?.length)
-    ? r.sensors.readings.map(reading => `
-      <div class="sensor-pill">
-        <span class="sensor-name">${esc(reading.name)}</span>
-        <strong>${Number(reading.value).toFixed(reading.kind === 'fan' ? 0 : 1)}</strong>
-        <span class="sensor-unit">${esc(reading.unit)}</span>
-      </div>`).join('')
-    : '';
+  const sensorPanel = renderSensorPanel(ui, r.sensors);
   const attribution = (a.attribution && a.attribution.length)
     ? a.attribution.map((c, i) => {
         const ct = causeText(state.lang, c.causeId);
@@ -442,12 +498,7 @@ function renderOverview(ui, r, a) {
       ${freqChart}
       ${miniCharts}
     </section>
-    ${sensorRows ? `
-    <section class="panel">
-      <div class="block-title">${ui.advancedSensors}</div>
-      <div class="sensor-grid">${sensorRows}</div>
-      <p class="hint">${esc(r.sensors.provider || '')}</p>
-    </section>` : ''}
+    ${sensorPanel}
     <section class="panel">
       <div class="block-title">${ui.findings}</div>
       ${findings || `<p class="hint">${ruleText(state.lang, 'rule.no-major-issue', {}).desc}</p>`}
